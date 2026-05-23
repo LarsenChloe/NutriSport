@@ -200,6 +200,21 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
 .tag-abdos{background:#fff7ed;color:#9a3412;}
 .tag-cardio{background:#fef9c3;color:#713f12;}
 .tag-mob{background:#f3f4f6;color:#374151;}
+
+/* MENU MODE */
+.menu-repas-card{border-radius:14px;padding:14px 16px;margin-bottom:10px;position:relative;border:1px solid var(--border);background:var(--card);animation:slideUp .3s ease both;}
+.menu-repas-title{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.menu-repas-emoji{font-size:20px;flex-shrink:0;}
+.menu-repas-label{font-size:13px;font-weight:800;color:var(--text);flex:1;}
+.menu-repas-kcal{font-size:12px;font-weight:700;color:var(--green);}
+.menu-item-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bg);}
+.menu-item-row:last-child{border-bottom:none;}
+.menu-item-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.menu-item-name{flex:1;font-size:13px;color:var(--text);}
+.menu-item-qty{font-size:11px;color:var(--text3);white-space:nowrap;}
+.menu-item-kcal{font-size:11px;color:var(--text2);white-space:nowrap;min-width:52px;text-align:right;}
+.menu-ingr-tag{display:inline-flex;align-items:center;gap:5px;background:var(--green-light);border:1px solid var(--green-mid);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--green);font-weight:600;}
+.menu-ingr-tag button{background:none;border:none;cursor:pointer;color:var(--green);font-size:14px;line-height:1;padding:0;}
 </style>
 </head>
 <body>
@@ -268,9 +283,10 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
     <div class="hero-pills" id="nutri-hero-tags"></div>
     <button onclick="showModal('modal-profil')" class="hero-action-btn">&#128100;</button>
   </div>
-  <div style="display:flex;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:3px;margin-bottom:14px;gap:3px;">
-    <button id="mode-btn-aliment" onclick="setNutriMode('aliment')" style="flex:1;height:36px;border-radius:9px;border:none;font-size:13px;font-family:inherit;font-weight:600;cursor:pointer;background:var(--green);color:#fff;transition:all .2s;">&#128269; Aliment</button>
-    <button id="mode-btn-plat" onclick="setNutriMode('plat')" style="flex:1;height:36px;border-radius:9px;border:none;font-size:13px;font-family:inherit;font-weight:600;cursor:pointer;background:transparent;color:var(--text2);transition:all .2s;">&#127869;&#65039; Composer un plat</button>
+  <div style="display:flex;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:3px;margin-bottom:14px;gap:2px;">
+    <button id="mode-btn-aliment" onclick="setNutriMode('aliment')" style="flex:1;height:34px;border-radius:9px;border:none;font-size:11px;font-family:inherit;font-weight:700;cursor:pointer;background:var(--green);color:#fff;transition:all .2s;">&#128269; Aliment</button>
+    <button id="mode-btn-plat" onclick="setNutriMode('plat')" style="flex:1;height:34px;border-radius:9px;border:none;font-size:11px;font-family:inherit;font-weight:600;cursor:pointer;background:transparent;color:var(--text2);transition:all .2s;">&#127869; Plat</button>
+    <button id="mode-btn-menu" onclick="setNutriMode('menu')" style="flex:1;height:34px;border-radius:9px;border:none;font-size:11px;font-family:inherit;font-weight:600;cursor:pointer;background:transparent;color:var(--text2);transition:all .2s;">&#127358; Menu</button>
   </div>
   <div id="nutri-mode-aliment">
     <div class="search-row">
@@ -318,6 +334,68 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
     </div>
   </div>
 </div>
+
+  <!-- MODE MENU -->
+  <div id="nutri-mode-menu" style="display:none;">
+
+    <!-- OBJECTIF DU JOUR -->
+    <div class="card" style="margin-bottom:10px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;">&#127919; Objectif du jour</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="menu-objectif-chips">
+        <button class="chip active" onclick="setMenuObj('auto',this)">&#129302; Auto (profil)</button>
+        <button class="chip" onclick="setMenuObj('deficit',this)">&#128293; Déficit</button>
+        <button class="chip" onclick="setMenuObj('equilibre',this)">&#9878;&#65039; Équilibré</button>
+        <button class="chip" onclick="setMenuObj('surplus',this)">&#128170; Surplus</button>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:var(--text3);" id="menu-obj-label"></div>
+    </div>
+
+    <!-- MES INGRÉDIENTS DISPONIBLES -->
+    <div class="card" style="margin-bottom:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);">&#127860; Mes ingrédients</div>
+        <button onclick="clearMenuIngr()" style="background:none;border:none;font-size:12px;color:var(--text3);cursor:pointer;">Vider</button>
+      </div>
+      <div style="position:relative;margin-bottom:8px;">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" id="menu-ingr-search" placeholder="Ajouter un ingrédient disponible…" oninput="menuIngrSearch(this.value)" autocomplete="off" style="padding-left:42px;" />
+      </div>
+      <div id="menu-ingr-suggestions" style="margin-bottom:6px;"></div>
+      <div id="menu-ingr-chips" style="display:flex;flex-wrap:wrap;gap:5px;min-height:10px;"></div>
+    </div>
+
+    <!-- BOUTON GÉNÉRER -->
+    <button class="btn btn-primary" onclick="genererMenu()" id="menu-gen-btn" style="margin-bottom:14px;">
+      &#10024; Générer mon menu du jour
+    </button>
+
+    <!-- RÉSULTAT MENU -->
+    <div id="menu-result" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="section-hd" style="margin:0;">Menu proposé</div>
+        <div style="display:flex;gap:6px;">
+          <button onclick="genererMenu()" style="background:var(--green-light);border:1px solid var(--green-mid);border-radius:8px;padding:5px 10px;font-size:12px;color:var(--green);cursor:pointer;font-weight:600;">&#8635; Autre</button>
+          <button onclick="addMenuJournal()" style="background:var(--green);border:none;border-radius:8px;padding:5px 12px;font-size:12px;color:#fff;cursor:pointer;font-weight:700;">+ Journal</button>
+        </div>
+      </div>
+      <!-- TOTAUX MENU -->
+      <div class="stats-row" style="margin-bottom:12px;" id="menu-totaux-row">
+        <div class="stat-box"><div class="stat-val" id="menu-t-kcal">0</div><div class="stat-lbl">kcal</div></div>
+        <div class="stat-box"><div class="stat-val" id="menu-t-prot">0g</div><div class="stat-lbl">protéines</div></div>
+        <div class="stat-box"><div class="stat-val" id="menu-t-feu">&#129001;</div><div class="stat-lbl">bilan</div></div>
+      </div>
+      <!-- REPAS CARDS -->
+      <div id="menu-repas-list"></div>
+      <!-- MANQUANTS -->
+      <div id="menu-manquants" style="display:none;" class="conseil conseil-orange" style="margin-top:8px;"></div>
+    </div>
+
+    <!-- MENUS SAUVEGARDES -->
+    <div id="menu-saved-wrap" style="margin-top:16px;">
+      <div class="section-hd">Menus sauvegardés</div>
+      <div id="menu-saved-list"></div>
+    </div>
+  </div>
 
 <!-- PAGE JOURNAL -->
 <div class="page" id="page-journal">
@@ -487,75 +565,269 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
 <script>
 // ===================== ALIMENTS DATA =====================
 var ALIMENTS=[
+// VIANDES
 {n:"Poulet (blanc grillé)",kcal:165,prot:31,lip:3.6,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Poulet (cuisse sans peau)",kcal:185,prot:26,lip:9,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Poulet (entier rôti)",kcal:215,prot:25,lip:13,gluc:0,fib:0,cat:"viande",feu:"vert"},
 {n:"Dinde (blanc)",kcal:157,prot:30,lip:2,gluc:0,fib:0,cat:"viande",feu:"vert"},
 {n:"Boeuf (steak maigre)",kcal:217,prot:26,lip:12,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Boeuf (haché 5%)",kcal:137,prot:21,lip:5,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Boeuf (haché 15%)",kcal:215,prot:19,lip:15,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Boeuf (côte de boeuf)",kcal:271,prot:24,lip:19,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Veau (escalope)",kcal:131,prot:24,lip:3.5,gluc:0,fib:0,cat:"viande",feu:"vert"},
 {n:"Porc (filet)",kcal:143,prot:26,lip:3.5,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Porc (côte)",kcal:231,prot:22,lip:16,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Agneau (gigot)",kcal:218,prot:24,lip:13,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Jambon blanc (dégraissé)",kcal:104,prot:18,lip:2.5,gluc:1,fib:0,cat:"viande",feu:"orange"},
+{n:"Jambon de Bayonne",kcal:196,prot:27,lip:10,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Saucisse de Francfort",kcal:290,prot:11,lip:26,gluc:2,fib:0,cat:"viande",feu:"rouge"},
+{n:"Chorizo",kcal:455,prot:24,lip:40,gluc:1,fib:0,cat:"viande",feu:"rouge"},
+{n:"Bacon",kcal:541,prot:37,lip:42,gluc:1.4,fib:0,cat:"viande",feu:"rouge"},
+{n:"Lardons (fumés)",kcal:331,prot:20,lip:28,gluc:1,fib:0,cat:"viande",feu:"rouge"},
+{n:"Saucisson sec",kcal:434,prot:26,lip:37,gluc:1,fib:0,cat:"viande",feu:"rouge"},
+{n:"Boudin noir",kcal:250,prot:16,lip:18,gluc:5,flb:0,cat:"viande",feu:"rouge"},
+// POISSONS & FRUITS DE MER
 {n:"Saumon (grillé)",kcal:206,prot:22,lip:13,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Saumon fumé",kcal:172,prot:25,lip:8,gluc:0,fib:0,cat:"poisson",feu:"vert"},
 {n:"Thon (naturel, boîte)",kcal:116,prot:25,lip:1,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Thon (à l'huile, boîte)",kcal:198,prot:22,lip:12,gluc:0,fib:0,cat:"poisson",feu:"orange"},
 {n:"Cabillaud",kcal:82,prot:18,lip:0.7,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Lieu noir",kcal:79,prot:17,lip:0.9,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Sole",kcal:83,prot:18,lip:1.2,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Dorade",kcal:96,prot:20,lip:2,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Truite",kcal:149,prot:20,lip:7,gluc:0,fib:0,cat:"poisson",feu:"vert"},
 {n:"Crevettes",kcal:99,prot:20,lip:1.4,gluc:0.2,fib:0,cat:"poisson",feu:"vert"},
 {n:"Maquereau",kcal:205,prot:19,lip:14,gluc:0,fib:0,cat:"poisson",feu:"vert"},
 {n:"Sardine (boîte huile)",kcal:208,prot:25,lip:11,gluc:0,fib:0,cat:"poisson",feu:"vert"},
-{n:"Jambon blanc (dégraissé)",kcal:104,prot:18,lip:2.5,gluc:1,fib:0,cat:"viande",feu:"orange"},
-{n:"Saucisse de Francfort",kcal:290,prot:11,lip:26,gluc:2,fib:0,cat:"viande",feu:"rouge"},
-{n:"Bacon",kcal:541,prot:37,lip:42,gluc:1.4,fib:0,cat:"viande",feu:"rouge"},
+{n:"Anchois (boîte)",kcal:210,prot:29,lip:10,gluc:0,fib:0,cat:"poisson",feu:"orange"},
+{n:"Moules (cuites)",kcal:86,prot:12,lip:2.2,gluc:3.7,fib:0,cat:"poisson",feu:"vert"},
+{n:"Coquilles Saint-Jacques",kcal:88,prot:17,lip:1.4,gluc:3.3,fib:0,cat:"poisson",feu:"vert"},
+{n:"Homard",kcal:89,prot:19,lip:0.9,gluc:0.5,fib:0,cat:"poisson",feu:"vert"},
+{n:"Calamars",kcal:92,prot:16,lip:1.4,gluc:3.1,fib:0,cat:"poisson",feu:"vert"},
+{n:"Hareng (fumé)",kcal:234,prot:27,lip:14,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+// OEUFS
 {n:"Oeuf entier",kcal:155,prot:13,lip:11,gluc:1.1,fib:0,cat:"oeuf",feu:"vert"},
 {n:"Blanc d'oeuf",kcal:52,prot:11,lip:0.2,gluc:0.7,fib:0,cat:"oeuf",feu:"vert"},
-{n:"Yaourt grec (0%)",kcal:59,prot:10,lip:0.4,gluc:3.6,fib:0,cat:"laitier",feu:"vert"},
-{n:"Fromage blanc 0%",kcal:45,prot:8,lip:0.1,gluc:3.5,fib:0,cat:"laitier",feu:"vert"},
+{n:"Oeuf à la coque",kcal:155,prot:13,lip:11,gluc:1.1,fib:0,cat:"oeuf",feu:"vert"},
+{n:"Omelette nature",kcal:154,prot:10,lip:12,gluc:0.4,fib:0,cat:"oeuf",feu:"vert"},
+// LAITIERS — LAITS ANIMAUX
+{n:"Lait entier",kcal:61,prot:3.2,lip:3.5,gluc:4.8,fib:0,cat:"laitier",feu:"orange"},
 {n:"Lait demi-écrémé",kcal:47,prot:3.4,lip:1.5,gluc:5,fib:0,cat:"laitier",feu:"vert"},
+{n:"Lait écrémé",kcal:34,prot:3.4,lip:0.1,gluc:5,fib:0,cat:"laitier",feu:"vert"},
+// LAITS VÉGÉTAUX
+{n:"Lait de soja",kcal:54,prot:3.3,lip:2.7,gluc:4,fib:0.4,cat:"laitier",feu:"vert"},
+{n:"Lait d'amande",kcal:24,prot:0.9,lip:1.5,gluc:2.2,fib:0.3,cat:"laitier",feu:"vert"},
+{n:"Lait d'avoine",kcal:47,prot:1,lip:1.5,gluc:7.4,fib:0.5,cat:"laitier",feu:"vert"},
+{n:"Lait de coco (boisson)",kcal:21,prot:0.2,lip:1.3,gluc:2.4,fib:0,cat:"laitier",feu:"orange"},
+{n:"Lait de coco (cuisine, 400ml)",kcal:197,prot:1.9,lip:21,gluc:2.8,fib:0,cat:"laitier",feu:"rouge"},
+{n:"Lait de riz",kcal:47,prot:0.3,lip:1,gluc:9.2,fib:0.1,cat:"laitier",feu:"orange"},
+{n:"Lait de noisette",kcal:30,prot:0.4,lip:1.3,gluc:4.2,fib:0.2,cat:"laitier",feu:"vert"},
+// CRÈMES
+{n:"Crème fraîche (épaisse, 30%)",kcal:292,prot:2.1,lip:30,gluc:3.2,fib:0,cat:"laitier",feu:"rouge"},
+{n:"Crème fraîche (légère, 15%)",kcal:162,prot:2.6,lip:15,gluc:3.8,fib:0,cat:"laitier",feu:"orange"},
+{n:"Crème de soja",kcal:110,prot:1.2,lip:9,gluc:5.5,fib:0,cat:"laitier",feu:"orange"},
+{n:"Crème d'avoine",kcal:128,prot:1.1,lip:7,gluc:14,fib:0.3,cat:"laitier",feu:"orange"},
+{n:"Crème d'amande",kcal:170,prot:1.5,lip:16,gluc:5,fib:0.5,cat:"laitier",feu:"orange"},
+{n:"Crème liquide entière",kcal:330,prot:2,lip:35,gluc:3,fib:0,cat:"laitier",feu:"rouge"},
+// YAOURTS & FROMAGES
+{n:"Yaourt grec (0%)",kcal:59,prot:10,lip:0.4,gluc:3.6,fib:0,cat:"laitier",feu:"vert"},
+{n:"Yaourt grec (entier)",kcal:97,prot:9,lip:5,gluc:3.6,fib:0,cat:"laitier",feu:"vert"},
+{n:"Yaourt nature (0%)",kcal:44,prot:4.7,lip:0.1,gluc:6,fib:0,cat:"laitier",feu:"vert"},
+{n:"Yaourt nature (entier)",kcal:61,prot:3.5,lip:3.1,gluc:4.9,fib:0,cat:"laitier",feu:"vert"},
+{n:"Yaourt au soja nature",kcal:62,prot:3.8,lip:2.6,gluc:5,fib:0.2,cat:"laitier",feu:"vert"},
+{n:"Fromage blanc 0%",kcal:45,prot:8,lip:0.1,gluc:3.5,fib:0,cat:"laitier",feu:"vert"},
+{n:"Fromage blanc 20%",kcal:88,prot:7.5,lip:3,gluc:4,fib:0,cat:"laitier",feu:"vert"},
 {n:"Fromage cottage",kcal:98,prot:11,lip:4.3,gluc:3.4,fib:0,cat:"laitier",feu:"vert"},
+{n:"Ricotta",kcal:174,prot:11,lip:13,gluc:3,fib:0,cat:"laitier",feu:"orange"},
+{n:"Mozzarella",kcal:280,prot:18,lip:22,gluc:2.2,fib:0,cat:"laitier",feu:"orange"},
+{n:"Feta",kcal:264,prot:14,lip:21,gluc:4,fib:0,cat:"laitier",feu:"orange"},
 {n:"Emmental",kcal:382,prot:28,lip:29,gluc:1.5,fib:0,cat:"laitier",feu:"orange"},
+{n:"Gruyère",kcal:413,prot:30,lip:32,gluc:0.4,fib:0,cat:"laitier",feu:"orange"},
 {n:"Parmesan",kcal:420,prot:38,lip:29,gluc:0,fib:0,cat:"laitier",feu:"orange"},
+{n:"Camembert",kcal:299,prot:19,lip:24,gluc:0.5,fib:0,cat:"laitier",feu:"orange"},
+{n:"Brie",kcal:334,prot:20,lip:28,gluc:0.5,fib:0,cat:"laitier",feu:"orange"},
+{n:"Comté",kcal:415,prot:27,lip:34,gluc:0,fib:0,cat:"laitier",feu:"orange"},
+{n:"Cheddar",kcal:403,prot:25,lip:33,gluc:1.3,fib:0,cat:"laitier",feu:"orange"},
+{n:"Roquefort",kcal:369,prot:22,lip:31,gluc:2,fib:0,cat:"laitier",feu:"rouge"},
 {n:"Beurre",kcal:717,prot:0.9,lip:81,gluc:0.1,fib:0,cat:"laitier",feu:"rouge"},
+{n:"Margarine",kcal:718,prot:0.2,lip:80,gluc:0.7,fib:0,cat:"laitier",feu:"rouge"},
+// FÉCULENTS & CÉRÉALES
 {n:"Riz complet (cuit)",kcal:110,prot:2.6,lip:0.9,gluc:23,fib:1.8,cat:"feculent",feu:"vert"},
 {n:"Riz blanc (cuit)",kcal:130,prot:2.7,lip:0.3,gluc:28,fib:0.4,cat:"feculent",feu:"orange"},
+{n:"Riz basmati (cuit)",kcal:121,prot:2.5,lip:0.4,gluc:26,fib:0.4,cat:"feculent",feu:"orange"},
+{n:"Riz sauvage (cuit)",kcal:101,prot:4,lip:0.3,gluc:21,fib:1.8,cat:"feculent",feu:"vert"},
 {n:"Pâtes complètes (cuites)",kcal:124,prot:5,lip:1,gluc:25,fib:2.5,cat:"feculent",feu:"vert"},
 {n:"Pâtes blanches (cuites)",kcal:158,prot:5.8,lip:0.9,gluc:31,fib:1.8,cat:"feculent",feu:"orange"},
+{n:"Pâtes de légumineuses (cuites)",kcal:135,prot:9,lip:1.5,gluc:22,fib:4,cat:"feculent",feu:"vert"},
 {n:"Quinoa (cuit)",kcal:120,prot:4.4,lip:1.9,gluc:22,fib:2.8,cat:"feculent",feu:"vert"},
+{n:"Boulgour (cuit)",kcal:83,prot:3,lip:0.2,gluc:18,fib:2.5,cat:"feculent",feu:"vert"},
+{n:"Semoule (cuite)",kcal:150,prot:5,lip:0.3,gluc:32,fib:1,cat:"feculent",feu:"orange"},
 {n:"Flocons d'avoine",kcal:379,prot:13,lip:7,gluc:68,fib:10,cat:"feculent",feu:"vert"},
+{n:"Muesli (sans sucre)",kcal:370,prot:11,lip:7,gluc:64,fib:7,cat:"feculent",feu:"vert"},
+{n:"Granola",kcal:471,prot:10,lip:20,gluc:64,fib:5,cat:"feculent",feu:"orange"},
 {n:"Pain complet",kcal:247,prot:13,lip:3.4,gluc:44,fib:7,cat:"feculent",feu:"vert"},
+{n:"Pain de seigle",kcal:259,prot:8.5,lip:3.3,gluc:48,fib:6.2,cat:"feculent",feu:"vert"},
 {n:"Pain blanc (baguette)",kcal:270,prot:9,lip:1.5,gluc:56,fib:2.7,cat:"feculent",feu:"orange"},
+{n:"Pain aux céréales",kcal:255,prot:9,lip:3.5,gluc:47,fib:5,cat:"feculent",feu:"vert"},
+{n:"Pain pita",kcal:275,prot:9,lip:1.2,gluc:57,fib:2.2,cat:"feculent",feu:"orange"},
+{n:"Wrap (tortilla de blé)",kcal:305,prot:8,lip:7,gluc:51,fib:2.5,cat:"feculent",feu:"orange"},
 {n:"Pomme de terre (cuite)",kcal:86,prot:2,lip:0.1,gluc:20,fib:1.8,cat:"feculent",feu:"vert"},
+{n:"Pomme de terre (vapeur)",kcal:73,prot:1.8,lip:0.1,gluc:17,fib:1.5,cat:"feculent",feu:"vert"},
 {n:"Patate douce (cuite)",kcal:86,prot:1.6,lip:0.1,gluc:20,fib:3,cat:"feculent",feu:"vert"},
+{n:"Polenta (cuite)",kcal:70,prot:1.6,lip:0.4,gluc:14.8,fib:1,cat:"feculent",feu:"orange"},
+{n:"Sarrasin (cuit)",kcal:92,prot:3.4,lip:0.6,gluc:20,fib:2.7,cat:"feculent",feu:"vert"},
+{n:"Millet (cuit)",kcal:119,prot:3.5,lip:1,gluc:23,fib:1.3,cat:"feculent",feu:"vert"},
+{n:"Orge perlé (cuit)",kcal:123,prot:2.3,lip:0.4,gluc:28,fib:3.8,cat:"feculent",feu:"vert"},
+{n:"Riz de konjac",kcal:9,prot:0.1,lip:0.1,gluc:1.6,fib:2.6,cat:"feculent",feu:"vert"},
+// LÉGUMINEUSES
 {n:"Lentilles (cuites)",kcal:116,prot:9,lip:0.4,gluc:20,fib:8,cat:"legume",feu:"vert"},
+{n:"Lentilles corail (cuites)",kcal:102,prot:7.6,lip:0.4,gluc:17,fib:4.9,cat:"legume",feu:"vert"},
 {n:"Pois chiches (cuits)",kcal:164,prot:9,lip:2.6,gluc:27,fib:7.6,cat:"legume",feu:"vert"},
 {n:"Haricots noirs (cuits)",kcal:132,prot:8.9,lip:0.5,gluc:24,fib:8.7,cat:"legume",feu:"vert"},
+{n:"Haricots blancs (cuits)",kcal:127,prot:9,lip:0.5,gluc:23,fib:6.4,cat:"legume",feu:"vert"},
+{n:"Haricots rouges (cuits)",kcal:127,prot:8.7,lip:0.5,gluc:22,fib:7.4,cat:"legume",feu:"vert"},
+{n:"Pois cassés (cuits)",kcal:118,prot:8.3,lip:0.4,gluc:21,fib:8.3,cat:"legume",feu:"vert"},
+{n:"Edamame (soja vert)",kcal:121,prot:11,lip:5.2,gluc:8.9,fib:5.2,cat:"legume",feu:"vert"},
+{n:"Tofu (nature)",kcal:76,prot:8,lip:4.2,gluc:1.9,fib:0.3,cat:"legume",feu:"vert"},
+{n:"Tofu ferme (grillé)",kcal:144,prot:17,lip:8,gluc:1.4,fib:0.5,cat:"legume",feu:"vert"},
+{n:"Tempeh",kcal:192,prot:19,lip:11,gluc:9,fib:0,cat:"legume",feu:"vert"},
+{n:"Seitan",kcal:370,prot:75,lip:1.9,gluc:14,fib:0.6,cat:"legume",feu:"vert"},
+// LÉGUMES
 {n:"Épinards (crus)",kcal:23,prot:2.9,lip:0.4,gluc:3.6,fib:2.2,cat:"legume",feu:"vert"},
 {n:"Brocoli (cuit)",kcal:35,prot:2.4,lip:0.4,gluc:7,fib:2.6,cat:"legume",feu:"vert"},
 {n:"Tomate",kcal:18,prot:0.9,lip:0.2,gluc:3.9,fib:1.2,cat:"legume",feu:"vert"},
+{n:"Tomates cerises",kcal:18,prot:0.9,lip:0.2,gluc:3.9,fib:1.2,cat:"legume",feu:"vert"},
 {n:"Courgette",kcal:17,prot:1.2,lip:0.3,gluc:3.1,fib:1,cat:"legume",feu:"vert"},
 {n:"Poivron rouge",kcal:31,prot:1,lip:0.3,gluc:6,fib:2.1,cat:"legume",feu:"vert"},
+{n:"Poivron vert",kcal:20,prot:0.9,lip:0.2,gluc:4,fib:1.7,cat:"legume",feu:"vert"},
+{n:"Poivron jaune",kcal:27,prot:1,lip:0.2,gluc:6,fib:0.9,cat:"legume",feu:"vert"},
 {n:"Chou-fleur",kcal:25,prot:1.9,lip:0.3,gluc:5,fib:2,cat:"legume",feu:"vert"},
+{n:"Chou frisé (kale)",kcal:49,prot:4.3,lip:0.9,gluc:9,fib:3.6,cat:"legume",feu:"vert"},
+{n:"Chou blanc (cru)",kcal:25,prot:1.3,lip:0.1,gluc:5.8,fib:2.5,cat:"legume",feu:"vert"},
+{n:"Chou rouge",kcal:31,prot:1.4,lip:0.2,gluc:7,fib:2.1,cat:"legume",feu:"vert"},
+{n:"Choux de Bruxelles",kcal:43,prot:3.4,lip:0.3,gluc:9,fib:3.8,cat:"legume",feu:"vert"},
 {n:"Carottes",kcal:41,prot:0.9,lip:0.2,gluc:10,fib:2.8,cat:"legume",feu:"vert"},
 {n:"Champignons",kcal:22,prot:3.1,lip:0.3,gluc:3.3,fib:1,cat:"legume",feu:"vert"},
+{n:"Champignons shiitake",kcal:34,prot:2.2,lip:0.5,gluc:6.8,fib:2.5,cat:"legume",feu:"vert"},
 {n:"Concombre",kcal:16,prot:0.7,lip:0.1,gluc:3.6,fib:0.5,cat:"legume",feu:"vert"},
 {n:"Salade verte",kcal:15,prot:1.4,lip:0.2,gluc:2.8,fib:1.3,cat:"legume",feu:"vert"},
+{n:"Roquette",kcal:25,prot:2.6,lip:0.7,gluc:3.7,fib:1.6,cat:"legume",feu:"vert"},
+{n:"Mâche",kcal:21,prot:2,lip:0.4,gluc:3.6,fib:1.5,cat:"legume",feu:"vert"},
+{n:"Endive",kcal:17,prot:0.9,lip:0.1,gluc:4,fib:0.9,cat:"legume",feu:"vert"},
+{n:"Céleri branche",kcal:16,prot:0.7,lip:0.2,gluc:3,fib:1.6,cat:"legume",feu:"vert"},
+{n:"Céleri rave",kcal:42,prot:1.5,lip:0.3,gluc:9.2,fib:1.8,cat:"legume",feu:"vert"},
+{n:"Fenouil",kcal:31,prot:1.2,lip:0.2,gluc:7,fib:3.1,cat:"legume",feu:"vert"},
+{n:"Poireau",kcal:61,prot:1.5,lip:0.3,gluc:14,fib:1.8,cat:"legume",feu:"vert"},
+{n:"Oignon",kcal:40,prot:1.1,lip:0.1,gluc:9.3,fib:1.7,cat:"legume",feu:"vert"},
+{n:"Ail",kcal:149,prot:6.4,lip:0.5,gluc:33,fib:2.1,cat:"legume",feu:"vert"},
+{n:"Échalote",kcal:72,prot:2.5,lip:0.1,gluc:17,fib:3.2,cat:"legume",feu:"vert"},
+{n:"Betterave (cuite)",kcal:44,prot:1.7,lip:0.1,gluc:10,fib:2.8,cat:"legume",feu:"vert"},
+{n:"Radis",kcal:16,prot:0.7,lip:0.1,gluc:3.4,fib:1.6,cat:"legume",feu:"vert"},
+{n:"Navet",kcal:28,prot:0.9,lip:0.1,gluc:6.4,fib:1.8,cat:"legume",feu:"vert"},
+{n:"Artichaut (cuit)",kcal:53,prot:2.9,lip:0.2,gluc:12,fib:5.4,cat:"legume",feu:"vert"},
+{n:"Asperges (cuites)",kcal:22,prot:2.4,lip:0.2,gluc:4.1,fib:2.1,cat:"legume",feu:"vert"},
+{n:"Haricots verts (cuits)",kcal:35,prot:1.9,lip:0.1,gluc:8,fib:3.4,cat:"legume",feu:"vert"},
+{n:"Petit pois (cuits)",kcal:84,prot:5.4,lip:0.4,gluc:15,fib:5.5,cat:"legume",feu:"vert"},
+{n:"Maïs (cuit)",kcal:86,prot:3.2,lip:1.2,gluc:19,fib:2.7,cat:"feculent",feu:"orange"},
+{n:"Courge butternut (cuite)",kcal:45,prot:1,lip:0.1,gluc:11,fib:2,cat:"legume",feu:"vert"},
+{n:"Potiron (cuit)",kcal:26,prot:1,lip:0.1,gluc:6.5,fib:0.5,cat:"legume",feu:"vert"},
+{n:"Aubergine (cuite)",kcal:35,prot:0.8,lip:0.2,gluc:8.7,fib:2.5,cat:"legume",feu:"vert"},
+// FRUITS
 {n:"Pomme",kcal:52,prot:0.3,lip:0.2,gluc:14,fib:2.4,cat:"fruit",feu:"vert"},
+{n:"Poire",kcal:57,prot:0.4,lip:0.1,gluc:15,fib:3.1,cat:"fruit",feu:"vert"},
 {n:"Banane",kcal:89,prot:1.1,lip:0.3,gluc:23,fib:2.6,cat:"fruit",feu:"orange"},
 {n:"Avocat",kcal:160,prot:2,lip:15,gluc:9,fib:6.7,cat:"fruit",feu:"vert"},
 {n:"Orange",kcal:47,prot:0.9,lip:0.1,gluc:12,fib:2.4,cat:"fruit",feu:"vert"},
+{n:"Clémentine",kcal:47,prot:0.9,lip:0.2,gluc:12,fib:1.7,cat:"fruit",feu:"vert"},
+{n:"Pamplemousse",kcal:42,prot:0.8,lip:0.1,gluc:11,fib:1.6,cat:"fruit",feu:"vert"},
+{n:"Citron (jus)",kcal:22,prot:0.4,lip:0.2,gluc:6,fib:0.3,cat:"fruit",feu:"vert"},
 {n:"Myrtilles",kcal:57,prot:0.7,lip:0.3,gluc:14,fib:2.4,cat:"fruit",feu:"vert"},
 {n:"Fraises",kcal:32,prot:0.7,lip:0.3,gluc:7.7,fib:2,cat:"fruit",feu:"vert"},
+{n:"Framboises",kcal:52,prot:1.2,lip:0.7,gluc:12,fib:6.5,cat:"fruit",feu:"vert"},
+{n:"Mûres",kcal:43,prot:1.4,lip:0.5,gluc:10,fib:5.3,cat:"fruit",feu:"vert"},
+{n:"Cerises",kcal:63,prot:1.1,lip:0.2,gluc:16,fib:2.1,cat:"fruit",feu:"vert"},
+{n:"Raisins",kcal:67,prot:0.6,lip:0.4,gluc:17,fib:0.9,cat:"fruit",feu:"orange"},
+{n:"Kiwi",kcal:61,prot:1.1,lip:0.5,gluc:15,fib:3,cat:"fruit",feu:"vert"},
 {n:"Mangue",kcal:60,prot:0.8,lip:0.4,gluc:15,fib:1.6,cat:"fruit",feu:"orange"},
+{n:"Ananas",kcal:50,prot:0.5,lip:0.1,gluc:13,fib:1.4,cat:"fruit",feu:"orange"},
+{n:"Papaye",kcal:43,prot:0.5,lip:0.3,gluc:11,fib:1.7,cat:"fruit",feu:"vert"},
+{n:"Pêche",kcal:39,prot:0.9,lip:0.3,gluc:10,fib:1.5,cat:"fruit",feu:"vert"},
+{n:"Nectarine",kcal:44,prot:1.1,lip:0.3,gluc:11,fib:1.7,cat:"fruit",feu:"vert"},
+{n:"Abricot",kcal:48,prot:1.4,lip:0.4,gluc:11,fib:2,cat:"fruit",feu:"vert"},
+{n:"Prune",kcal:46,prot:0.7,lip:0.3,gluc:11,fib:1.4,cat:"fruit",feu:"vert"},
+{n:"Figue fraîche",kcal:74,prot:0.8,lip:0.3,gluc:19,fib:2.9,cat:"fruit",feu:"orange"},
+{n:"Melon",kcal:34,prot:0.8,lip:0.2,gluc:8,fib:0.9,cat:"fruit",feu:"vert"},
+{n:"Pastèque",kcal:30,prot:0.6,lip:0.2,gluc:8,fib:0.4,cat:"fruit",feu:"orange"},
+{n:"Grenade",kcal:83,prot:1.7,lip:1.2,gluc:19,fib:4,cat:"fruit",feu:"vert"},
+{n:"Dattes (séchées)",kcal:282,prot:2.5,lip:0.4,gluc:75,fib:8,cat:"fruit",feu:"rouge"},
+// MATIÈRES GRASSES & OLÉAGINEUX
 {n:"Huile d'olive",kcal:884,prot:0,lip:100,gluc:0,fib:0,cat:"gras",feu:"orange"},
+{n:"Huile de colza",kcal:884,prot:0,lip:100,gluc:0,fib:0,cat:"gras",feu:"vert"},
+{n:"Huile de coco",kcal:862,prot:0,lip:100,gluc:0,fib:0,cat:"gras",feu:"orange"},
+{n:"Huile de tournesol",kcal:884,prot:0,lip:100,gluc:0,fib:0,cat:"gras",feu:"orange"},
 {n:"Amandes",kcal:579,prot:21,lip:50,gluc:22,fib:12.5,cat:"oleagineux",feu:"vert"},
 {n:"Noix",kcal:654,prot:15,lip:65,gluc:14,fib:6.7,cat:"oleagineux",feu:"vert"},
+{n:"Noisettes",kcal:628,prot:15,lip:61,gluc:17,fib:9.7,cat:"oleagineux",feu:"vert"},
+{n:"Noix de cajou",kcal:553,prot:18,lip:44,gluc:30,fib:3.3,cat:"oleagineux",feu:"vert"},
+{n:"Noix de macadamia",kcal:718,prot:8,lip:76,gluc:14,fib:8.6,cat:"oleagineux",feu:"vert"},
+{n:"Pistaches",kcal:562,prot:20,lip:45,gluc:28,fib:10.3,cat:"oleagineux",feu:"vert"},
+{n:"Graines de chia",kcal:486,prot:17,lip:31,gluc:42,fib:34.4,cat:"oleagineux",feu:"vert"},
+{n:"Graines de lin",kcal:534,prot:18,lip:42,gluc:29,fib:27.3,cat:"oleagineux",feu:"vert"},
+{n:"Graines de tournesol",kcal:584,prot:21,lip:51,gluc:20,fib:8.6,cat:"oleagineux",feu:"vert"},
+{n:"Graines de courge",kcal:559,prot:30,lip:49,gluc:11,fib:6,cat:"oleagineux",feu:"vert"},
+{n:"Graines de sésame",kcal:573,prot:17,lip:50,gluc:23,fib:11.8,cat:"oleagineux",feu:"vert"},
+{n:"Tahini (purée de sésame)",kcal:595,prot:17,lip:54,gluc:21,fib:9.3,cat:"oleagineux",feu:"vert"},
 {n:"Cacahuètes",kcal:567,prot:26,lip:49,gluc:16,fib:8.5,cat:"oleagineux",feu:"vert"},
 {n:"Beurre de cacahuète",kcal:588,prot:25,lip:50,gluc:20,fib:6,cat:"oleagineux",feu:"orange"},
+{n:"Purée d'amandes",kcal:614,prot:21,lip:56,gluc:18,fib:10.5,cat:"oleagineux",feu:"vert"},
+// BOISSONS
+{n:"Eau",kcal:0,prot:0,lip:0,gluc:0,fib:0,cat:"boisson",feu:"vert"},
+{n:"Café (expresso)",kcal:2,prot:0.1,lip:0,gluc:0,fib:0,cat:"boisson",feu:"vert"},
+{n:"Thé (infusion)",kcal:1,prot:0,lip:0,gluc:0.2,fib:0,cat:"boisson",feu:"vert"},
 {n:"Lait de soja",kcal:54,prot:3.3,lip:2.7,gluc:4,fib:0.4,cat:"boisson",feu:"vert"},
-{n:"Jus d'orange",kcal:45,prot:0.7,lip:0.2,gluc:10,fib:0.2,cat:"boisson",feu:"orange"},
+{n:"Lait d'amande",kcal:24,prot:0.9,lip:1.5,gluc:2.2,fib:0.3,cat:"boisson",feu:"vert"},
+{n:"Lait d'avoine",kcal:47,prot:1,lip:1.5,gluc:7.4,fib:0.5,cat:"boisson",feu:"vert"},
+{n:"Jus d'orange (pressé)",kcal:45,prot:0.7,lip:0.2,gluc:10,fib:0.2,cat:"boisson",feu:"orange"},
+{n:"Jus de pomme",kcal:46,prot:0.1,lip:0.1,gluc:11,fib:0.2,cat:"boisson",feu:"orange"},
+{n:"Smoothie fruit (maison)",kcal:58,prot:0.9,lip:0.3,gluc:14,fib:1.2,cat:"boisson",feu:"orange"},
 {n:"Soda (cola)",kcal:42,prot:0,lip:0,gluc:10.6,fib:0,cat:"boisson",feu:"rouge"},
+{n:"Bière (33cl)",kcal:153,prot:1.3,lip:0,gluc:13,fib:0,cat:"boisson",feu:"rouge"},
+{n:"Vin rouge (verre 15cl)",kcal:125,prot:0.1,lip:0,gluc:4,fib:0,cat:"boisson",feu:"rouge"},
+{n:"Kombucha",kcal:30,prot:0,lip:0,gluc:7,fib:0,cat:"boisson",feu:"orange"},
+// CONDIMENTS & SAUCES
+{n:"Ketchup",kcal:100,prot:1.7,lip:0.1,gluc:24,fib:0.5,cat:"condiment",feu:"rouge"},
+{n:"Mayonnaise",kcal:680,prot:1.3,lip:75,gluc:2.6,fib:0,cat:"condiment",feu:"rouge"},
+{n:"Moutarde",kcal:60,prot:4.4,lip:3.6,gluc:5.8,fib:3.2,cat:"condiment",feu:"vert"},
+{n:"Sauce soja",kcal:53,prot:8.1,lip:0.1,gluc:5,fib:0.8,cat:"condiment",feu:"orange"},
+{n:"Vinaigre balsamique",kcal:88,prot:0.5,lip:0,gluc:17.3,fib:0,cat:"condiment",feu:"orange"},
+{n:"Houmous",kcal:166,prot:7.9,lip:9.6,gluc:14,fib:6,cat:"condiment",feu:"vert"},
+{n:"Guacamole (maison)",kcal:150,prot:1.9,lip:14,gluc:8.5,fib:6.4,cat:"condiment",feu:"vert"},
+{n:"Tzatziki",kcal:81,prot:4.3,lip:5.1,gluc:5.3,fib:0.4,cat:"condiment",feu:"vert"},
+// SPORT & NUTRITION SPÉCIALE
 {n:"Whey protéine (poudre)",kcal:375,prot:80,lip:3.5,gluc:8,fib:0,cat:"sport",feu:"vert"},
+{n:"Caséine (poudre)",kcal:360,prot:80,lip:2,gluc:6,fib:0,cat:"sport",feu:"vert"},
+{n:"Protéine végétale (pea protein)",kcal:370,prot:80,lip:2.5,gluc:5,fib:2,cat:"sport",feu:"vert"},
 {n:"Barre protéinée",kcal:350,prot:22,lip:10,gluc:40,fib:3,cat:"sport",feu:"orange"},
+{n:"Gel énergétique",kcal:100,prot:0.2,lip:0.1,gluc:25,fib:0,cat:"sport",feu:"orange"},
+{n:"Boisson isotonique",kcal:28,prot:0,lip:0,gluc:7,fib:0,cat:"sport",feu:"orange"},
+{n:"Créatine (poudre)",kcal:0,prot:0,lip:0,gluc:0,fib:0,cat:"sport",feu:"vert"},
+// JUNK & TRANSFORMÉ
 {n:"Chips (sachet)",kcal:536,prot:7,lip:35,gluc:53,fib:4,cat:"junk",feu:"rouge"},
 {n:"Hamburger fast-food",kcal:295,prot:17,lip:14,gluc:24,fib:1,cat:"junk",feu:"rouge"},
 {n:"Pizza margherita",kcal:266,prot:11,lip:10,gluc:33,fib:2.3,cat:"junk",feu:"rouge"},
+{n:"Pizza (4 fromages)",kcal:310,prot:14,lip:14,gluc:32,fib:2.1,cat:"junk",feu:"rouge"},
+{n:"Nuggets de poulet",kcal:297,prot:15,lip:17,gluc:22,fib:0.5,cat:"junk",feu:"rouge"},
+{n:"Frites",kcal:312,prot:3.4,lip:15,gluc:41,fib:3.8,cat:"junk",feu:"rouge"},
 {n:"Chocolat noir (70%)",kcal:598,prot:7.8,lip:43,gluc:46,fib:10.9,cat:"junk",feu:"orange"},
 {n:"Chocolat au lait",kcal:535,prot:7.6,lip:30,gluc:60,fib:1.5,cat:"junk",feu:"rouge"},
+{n:"Chocolat blanc",kcal:539,prot:5.9,lip:32,gluc:59,fib:0.2,cat:"junk",feu:"rouge"},
 {n:"Croissant",kcal:406,prot:8.2,lip:21,gluc:46,fib:2.1,cat:"junk",feu:"rouge"},
-{n:"Biscuits (cookies)",kcal:488,prot:5.4,lip:23,gluc:65,fib:2.5,cat:"junk",feu:"rouge"}
+{n:"Pain au chocolat",kcal:394,prot:7.4,lip:19,gluc:50,fib:2.3,cat:"junk",feu:"rouge"},
+{n:"Biscuits (cookies)",kcal:488,prot:5.4,lip:23,gluc:65,fib:2.5,cat:"junk",feu:"rouge"},
+{n:"Gâteau au chocolat",kcal:367,prot:5.7,lip:17,gluc:50,fib:2.1,cat:"junk",feu:"rouge"},
+{n:"Glace (vanille)",kcal:207,prot:3.5,lip:11,gluc:24,fib:0.5,cat:"junk",feu:"rouge"},
+{n:"Bonbons",kcal:340,prot:0.5,lip:0.2,gluc:85,fib:0,cat:"junk",feu:"rouge"},
+{n:"Popcorn (salé)",kcal:387,prot:12,lip:19,gluc:46,fib:14.5,cat:"junk",feu:"orange"}
 ];
 
 var EXERCICES=[
@@ -749,13 +1021,14 @@ function getConseil(a,but){
 // ===================== MODE TOGGLE =====================
 function setNutriMode(mode){
   nutriMode=mode;
-  document.getElementById('nutri-mode-aliment').style.display=mode==='aliment'?'block':'none';
-  document.getElementById('nutri-mode-plat').style.display=mode==='plat'?'block':'none';
-  document.getElementById('mode-btn-aliment').style.background=mode==='aliment'?'var(--green)':'transparent';
-  document.getElementById('mode-btn-aliment').style.color=mode==='aliment'?'#fff':'var(--text2)';
-  document.getElementById('mode-btn-plat').style.background=mode==='plat'?'var(--green)':'transparent';
-  document.getElementById('mode-btn-plat').style.color=mode==='plat'?'#fff':'var(--text2)';
+  ['aliment','plat','menu'].forEach(function(m){
+    var el=document.getElementById('nutri-mode-'+m);
+    if(el) el.style.display=m===mode?'block':'none';
+    var btn=document.getElementById('mode-btn-'+m);
+    if(btn){btn.style.background=m===mode?'var(--green)':'transparent';btn.style.color=m===mode?'#fff':'var(--text2)';btn.style.fontWeight=m===mode?'700':'600';}
+  });
   if(mode==='plat') renderRecettes();
+  if(mode==='menu'){updateMenuObjLabel();renderMenuIngrChips();renderMenuSaved();}
 }
 
 // ===================== PLAT =====================
@@ -1122,6 +1395,280 @@ function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.c
 
 // exo-card styles needed
 document.head.insertAdjacentHTML('beforeend','<style>.exo-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s;}.exo-card.selected{border-color:var(--green);background:#f0fdf4;}.exo-card.selected .exo-check{opacity:1;}.exo-info{flex:1;}.exo-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}.exo-desc{font-size:11px;color:var(--text3);}.exo-check{width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;opacity:0;transition:opacity .15s;flex-shrink:0;}</style>');
+
+
+// ===================== MENU GENERATOR =====================
+var menuIngredients = [];   // aliments disponibles
+var menuObjectif = 'auto';  // auto / deficit / equilibre / surplus
+var lastMenu = null;        // dernier menu généré
+var menussaved = JSON.parse(localStorage.getItem('ns_menus')||'[]');
+
+var REPAS_DEF = [
+  {id:'pdj',  label:'Petit-déjeuner', emoji:'🌅', pctKcal:0.25},
+  {id:'dej',  label:'Déjeuner',       emoji:'☀️',  pctKcal:0.35},
+  {id:'col',  label:'Collation',      emoji:'🍎',  pctKcal:0.10},
+  {id:'din',  label:'Dîner',          emoji:'🌙',  pctKcal:0.30}
+];
+
+// Catégories par repas — quels cats d'aliments sont OK
+var REPAS_CATS = {
+  pdj:  ['feculent','laitier','fruit','oleagineux','boisson','sport'],
+  dej:  ['viande','poisson','legume','feculent','legume','condiment'],
+  col:  ['fruit','oleagineux','laitier','sport','feculent'],
+  din:  ['viande','poisson','legume','feculent','condiment']
+};
+
+// Exclusions par repas (feux rouges autorisés seulement dans col/din avec modération)
+var FEU_EXCLU_ROUGE = ['pdj','dej'];
+
+function setMenuObj(obj, el) {
+  menuObjectif = obj;
+  document.querySelectorAll('#menu-objectif-chips .chip').forEach(function(c){c.classList.remove('active');});
+  el.classList.add('active');
+  updateMenuObjLabel();
+}
+
+function updateMenuObjLabel() {
+  var el = document.getElementById('menu-obj-label');
+  if (!el) return;
+  var besoins = getMenuBesoins();
+  el.textContent = '⚡ Objectif : ' + besoins.kcal + ' kcal · 💪 ' + besoins.prot + 'g protéines';
+}
+
+function getMenuBesoins() {
+  var base = profil ? {kcal: profil.kcal_cible, prot: profil.prot_cible} : {kcal:2000, prot:150};
+  if (menuObjectif === 'auto') return base;
+  if (menuObjectif === 'deficit') return {kcal: Math.round(base.kcal * 0.85), prot: Math.round(base.prot * 1.1)};
+  if (menuObjectif === 'equilibre') return {kcal: profil ? profil.kcal_cible + 200 : 2200, prot: base.prot};
+  if (menuObjectif === 'surplus') return {kcal: Math.round(base.kcal * 1.15), prot: Math.round(base.prot * 0.9)};
+  return base;
+}
+
+function menuIngrSearch(q) {
+  var sug = document.getElementById('menu-ingr-suggestions');
+  if (!q || q.length < 1) { sug.innerHTML = ''; return; }
+  var q2 = q.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+  var found = ALIMENTS.filter(function(a){
+    return a.n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").indexOf(q2) >= 0
+      && !menuIngredients.find(function(x){return x.n===a.n;});
+  }).slice(0,5);
+  if (!found.length) { sug.innerHTML='<div style="font-size:13px;color:var(--text3);padding:4px 0;">Aucun résultat.</div>'; return; }
+  sug.innerHTML = found.map(function(a){
+    var dot = a.feu==='vert'?'#22c55e':a.feu==='orange'?'#f97316':'#ef4444';
+    return '<div onclick="menuAddIngr(\''+a.n.replace(/\'/g,"\\'")+'\')" style="padding:9px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:4px;cursor:pointer;display:flex;align-items:center;gap:8px;">'
+      +'<span style="width:10px;height:10px;border-radius:50%;background:'+dot+';flex-shrink:0;"></span>'
+      +'<span style="flex:1;font-size:13px;color:var(--text);">'+a.n+'</span>'
+      +'<span style="font-size:11px;color:var(--text3);">'+a.kcal+' kcal/100g</span>'
+      +'<span style="font-size:18px;color:var(--green);">+</span>'
+      +'</div>';
+  }).join('');
+}
+
+function menuAddIngr(nom) {
+  var a = ALIMENTS.find(function(x){return x.n===nom;});
+  if (!a || menuIngredients.find(function(x){return x.n===nom;})) return;
+  menuIngredients.push(a);
+  document.getElementById('menu-ingr-search').value = '';
+  document.getElementById('menu-ingr-suggestions').innerHTML = '';
+  renderMenuIngrChips();
+}
+
+function menuRemoveIngr(nom) {
+  menuIngredients = menuIngredients.filter(function(a){return a.n!==nom;});
+  renderMenuIngrChips();
+}
+
+function clearMenuIngr() { menuIngredients = []; renderMenuIngrChips(); }
+
+function renderMenuIngrChips() {
+  var chips = document.getElementById('menu-ingr-chips');
+  if (!chips) return;
+  if (!menuIngredients.length) { chips.innerHTML='<span style="font-size:12px;color:var(--text3);font-style:italic;">Aucun ingrédient — menu généré depuis la base complète</span>'; return; }
+  chips.innerHTML = menuIngredients.map(function(a){
+    var safeN = a.n.replace(/\'/g,"\\'");
+    var dot = a.feu==='vert'?'#22c55e':a.feu==='orange'?'#f97316':'#ef4444';
+    return '<span class="menu-ingr-tag"><span style="width:8px;height:8px;border-radius:50%;background:'+dot+';display:inline-block;"></span>'+a.n+'<button onclick="menuRemoveIngr(\''+safeN+'\')" >×</button></span>';
+  }).join('');
+}
+
+function genererMenu() {
+  var besoins = getMenuBesoins();
+  var pool = menuIngredients.length > 0 ? menuIngredients : ALIMENTS;
+  var menu = {repas:[], totalKcal:0, totalProt:0};
+  var manquants = [];
+
+  REPAS_DEF.forEach(function(rep) {
+    var targetKcal = Math.round(besoins.kcal * rep.pctKcal);
+    var targetProt = Math.round(besoins.prot * rep.pctKcal * 1.1);
+    var cats = REPAS_CATS[rep.id];
+    var excluRouge = FEU_EXCLU_ROUGE.indexOf(rep.id) >= 0;
+
+    // Filter aliments fitting this meal
+    var candidats = pool.filter(function(a){
+      if (excluRouge && a.feu==='rouge') return false;
+      return cats.indexOf(a.cat) >= 0;
+    });
+
+    // If not enough from user pool, supplement from ALIMENTS
+    if (candidats.length < 3) {
+      var supp = ALIMENTS.filter(function(a){
+        if (excluRouge && a.feu==='rouge') return false;
+        return cats.indexOf(a.cat) >= 0 && !pool.find(function(x){return x.n===a.n;});
+      });
+      candidats = candidats.concat(supp);
+      if (menuIngredients.length > 0) manquants.push(rep.label + ' : ajout auto depuis la base');
+    }
+
+    // Shuffle deterministically (different each call via timestamp)
+    var seed = Date.now() + rep.id.charCodeAt(0);
+    candidats = candidats.slice().sort(function(){ return (Math.sin(seed++) > 0) ? 1 : -1; });
+
+    var items = [];
+    var cumKcal = 0, cumProt = 0;
+    var maxItems = rep.id==='col' ? 2 : 4;
+
+    // Prioritize protein sources
+    var protSources = candidats.filter(function(a){return a.prot >= 10;});
+    var autres = candidats.filter(function(a){return a.prot < 10;});
+    var ordered = protSources.concat(autres);
+
+    ordered.forEach(function(a) {
+      if (items.length >= maxItems) return;
+      if (cumKcal >= targetKcal * 1.1) return;
+      // Compute qty to fill remaining budget
+      var remaining = targetKcal - cumKcal;
+      var qty = Math.min(Math.max(Math.round(remaining / a.kcal * 100 / (maxItems - items.length)), 30), 350);
+      if (a.cat==='gras'||a.cat==='condiment') qty=Math.min(qty,20);
+      if (a.cat==='oleagineux') qty=Math.min(qty,40);
+      if (a.cat==='boisson') qty=Math.min(qty,200);
+      qty = Math.round(qty/5)*5; // round to 5g
+      if (qty < 10) return;
+      var r = qty/100;
+      cumKcal += Math.round(a.kcal*r);
+      cumProt += Math.round(a.prot*r*10)/10;
+      items.push({aliment:a, qty:qty, kcal:Math.round(a.kcal*r), prot:Math.round(a.prot*r*10)/10});
+    });
+
+    if (!items.length && candidats.length > 0) {
+      var a = candidats[0]; var qty = 150;
+      items.push({aliment:a, qty:qty, kcal:Math.round(a.kcal*qty/100), prot:Math.round(a.prot*qty/100*10)/10});
+      cumKcal += items[0].kcal; cumProt += items[0].prot;
+    }
+
+    menu.repas.push({def:rep, items:items, totalKcal:cumKcal, totalProt:Math.round(cumProt*10)/10});
+    menu.totalKcal += cumKcal;
+    menu.totalProt += cumProt;
+  });
+
+  menu.totalProt = Math.round(menu.totalProt*10)/10;
+  menu.manquants = manquants;
+  lastMenu = menu;
+  renderMenuResult(menu, besoins);
+}
+
+function renderMenuResult(menu, besoins) {
+  var res = document.getElementById('menu-result');
+  res.style.display = 'block';
+
+  // Totaux
+  document.getElementById('menu-t-kcal').textContent = menu.totalKcal;
+  document.getElementById('menu-t-prot').textContent = menu.totalProt+'g';
+
+  // Feu global
+  var pctKcal = menu.totalKcal / besoins.kcal;
+  var feuGlobal = (pctKcal >= 0.85 && pctKcal <= 1.15 && menu.totalProt >= besoins.prot*0.8) ? '🟢' : (pctKcal < 0.75 || menu.totalProt < besoins.prot*0.6) ? '🔴' : '🟠';
+  document.getElementById('menu-t-feu').textContent = feuGlobal;
+
+  // Repas cards
+  var animDelay = 0;
+  document.getElementById('menu-repas-list').innerHTML = menu.repas.map(function(rep, ri){
+    var style = 'animation-delay:' + (ri*80) + 'ms';
+    var items = rep.items.map(function(it){
+      var dot = it.aliment.feu==='vert'?'#22c55e':it.aliment.feu==='orange'?'#f97316':'#ef4444';
+      return '<div class="menu-item-row">'
+        +'<span class="menu-item-dot" style="background:'+dot+'"></span>'
+        +'<span class="menu-item-name">'+it.aliment.n+'</span>'
+        +'<span class="menu-item-qty">'+it.qty+'g</span>'
+        +'<span class="menu-item-kcal">'+it.kcal+' kcal</span>'
+        +'</div>';
+    }).join('');
+    return '<div class="menu-repas-card" style="'+style+'">'
+      +'<div class="menu-repas-title">'
+      +'<span class="menu-repas-emoji">'+rep.def.emoji+'</span>'
+      +'<span class="menu-repas-label">'+rep.def.label+'</span>'
+      +'<span class="menu-repas-kcal">'+rep.totalKcal+' kcal · '+rep.totalProt+'g prot.</span>'
+      +'</div>'
+      + items
+      +'</div>';
+  }).join('');
+
+  // Manquants
+  var mq = document.getElementById('menu-manquants');
+  if (menu.manquants && menu.manquants.length) {
+    mq.style.display='block';
+    mq.textContent = 'ℹ️ Ingrédients manquants complétés automatiquement pour : ' + menu.manquants.map(function(m){return m.split(':')[0];}).join(', ');
+  } else { mq.style.display='none'; }
+
+  renderMenuSaved();
+}
+
+function addMenuJournal() {
+  if (!lastMenu) return;
+  var today = todayKey();
+  if (!journal[today]) journal[today] = [];
+  lastMenu.repas.forEach(function(rep){
+    rep.items.forEach(function(it){
+      journal[today].push({
+        nom:it.aliment.n, qty:it.qty, repas:rep.def.label,
+        feu:it.aliment.feu, kcal:it.kcal, prot:it.prot,
+        lip:Math.round(it.aliment.lip*it.qty/100*10)/10,
+        gluc:Math.round(it.aliment.gluc*it.qty/100*10)/10
+      });
+    });
+  });
+  localStorage.setItem('ns_journal', JSON.stringify(journal));
+  toast('Menu ajouté au journal ✅');
+  renderJournal();
+}
+
+function saveMenu() {
+  if (!lastMenu) return;
+  var nom = 'Menu ' + new Date().toLocaleDateString('fr-FR');
+  menusaved.unshift({nom:nom, menu:lastMenu, date:new Date().toLocaleDateString('fr-FR')});
+  if (menusaved.length > 10) menusaved = menusaved.slice(0,10);
+  localStorage.setItem('ns_menus', JSON.stringify(menusaved));
+  renderMenuSaved();
+  toast('Menu sauvegardé ✅');
+}
+
+function renderMenuSaved() {
+  var list = document.getElementById('menu-saved-list');
+  if (!list) return;
+  if (!menusaved.length) { list.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:8px;">Aucun menu sauvegardé.</div>'; return; }
+  list.innerHTML = menusaved.slice(0,3).map(function(m,i){
+    return '<div class="card-sm" style="display:flex;align-items:center;gap:10px;">'
+      +'<span style="font-size:22px;">📋</span>'
+      +'<div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--text);">'+m.nom+'</div>'
+      +'<div style="font-size:11px;color:var(--text3);">'+m.menu.totalKcal+' kcal · '+m.menu.totalProt+'g prot · 4 repas</div></div>'
+      +'<button onclick="loadMenuSaved('+i+')" style="background:var(--green-light);border:1px solid var(--green-mid);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--green);cursor:pointer;font-weight:600;">Voir</button>'
+      +'<button onclick="deleteMenuSaved('+i+')" style="background:none;border:none;font-size:15px;color:var(--text3);cursor:pointer;">×</button>'
+      +'</div>';
+  }).join('');
+}
+
+function loadMenuSaved(i) {
+  lastMenu = menusaved[i].menu;
+  var besoins = getMenuBesoins();
+  renderMenuResult(lastMenu, besoins);
+  toast('Menu chargé');
+}
+
+function deleteMenuSaved(i) {
+  menusaved.splice(i,1);
+  localStorage.setItem('ns_menus', JSON.stringify(menusaved));
+  renderMenuSaved();
+}
+
 </script>
 </body>
 </html>
