@@ -217,6 +217,32 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
 .menu-item-kcal{font-size:11px;color:var(--text2);white-space:nowrap;min-width:52px;text-align:right;}
 .menu-ingr-tag{display:inline-flex;align-items:center;gap:5px;background:var(--green-light);border:1px solid var(--green-mid);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--green);font-weight:600;}
 .menu-ingr-tag button{background:none;border:none;cursor:pointer;color:var(--green);font-size:14px;line-height:1;padding:0;}
+
+/* EXO CARD */
+.exo-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s;}
+.exo-card.selected{border-color:var(--green);background:#f0fdf4;}
+.exo-card.selected .exo-check{opacity:1;}
+.exo-info{flex:1;}
+.exo-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.exo-desc{font-size:11px;color:var(--text3);}
+.exo-check{width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;opacity:0;transition:opacity .15s;flex-shrink:0;}
+
+/* SUPERSETS */
+.superset-block{border:2px solid #a78bfa;border-radius:14px;padding:10px 10px 4px;margin-bottom:10px;background:#faf5ff;position:relative;}
+.triset-block{border:2px solid #f59e0b;border-radius:14px;padding:10px 10px 4px;margin-bottom:10px;background:#fffbeb;position:relative;}
+.superset-label{position:absolute;top:-10px;left:12px;font-size:10px;font-weight:800;letter-spacing:.08em;padding:1px 8px;border-radius:8px;background:#a78bfa;color:#fff;}
+.triset-label{position:absolute;top:-10px;left:12px;font-size:10px;font-weight:800;letter-spacing:.08em;padding:1px 8px;border-radius:8px;background:#f59e0b;color:#fff;}
+.superset-connector{text-align:center;font-size:11px;font-weight:700;color:#a78bfa;margin:2px 0;letter-spacing:.1em;}
+.triset-connector{text-align:center;font-size:11px;font-weight:700;color:#f59e0b;margin:2px 0;letter-spacing:.1em;}
+.superset-block .sel-exo-row{background:#ede9fe;border-color:#c4b5fd;}
+.triset-block .sel-exo-row{background:#fef3c7;border-color:#fcd34d;}
+.group-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:34px;border-radius:10px;border:1.5px dashed #a78bfa;background:transparent;color:#7c3aed;font-size:12px;font-family:inherit;font-weight:700;cursor:pointer;margin-top:6px;transition:all .15s;}
+.group-btn:active{background:#f5f3ff;}
+.group-btn.tri{border-color:#f59e0b;color:#d97706;}
+.group-btn.tri:active{background:#fffbeb;}
+.group-btn:disabled{opacity:.35;cursor:default;}
+.ungroup-btn{background:none;border:none;font-size:11px;color:#7c3aed;cursor:pointer;font-weight:600;position:absolute;top:4px;right:8px;}
+.triset-block .ungroup-btn{color:#d97706;}
 </style>
 </head>
 <body>
@@ -288,7 +314,7 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
   <div style="display:flex;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:3px;margin-bottom:14px;gap:2px;">
     <button id="mode-btn-aliment" onclick="setNutriMode('aliment')" style="flex:1;height:34px;border-radius:9px;border:none;font-size:11px;font-family:inherit;font-weight:700;cursor:pointer;background:var(--green);color:#fff;transition:all .2s;">&#128269; Aliment</button>
     <button id="mode-btn-plat" onclick="setNutriMode('plat')" style="flex:1;height:34px;border-radius:9px;border:none;font-size:11px;font-family:inherit;font-weight:600;cursor:pointer;background:transparent;color:var(--text2);transition:all .2s;">&#127869; Plat</button>
-    <button id="mode-btn-menu" onclick="setNutriMode('menu')" style="flex:1;height:34px;border-radius:9px;border:none;font-size:11px;font-family:inherit;font-weight:600;cursor:pointer;background:transparent;color:var(--text2);transition:all .2s;">&#127358; Menu</button>
+    <button id="mode-btn-menu" onclick="setNutriMode('menu')" style="flex:1;height:34px;border-radius:9px;border:none;font-size:11px;font-family:inherit;font-weight:600;cursor:pointer;background:transparent;color:var(--text2);transition:all .2s;">📋 Menu</button>
   </div>
   <div id="nutri-mode-aliment">
     <div class="search-row">
@@ -297,6 +323,11 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
     </div>
     <div id="nutri-suggestions" style="margin-bottom:10px;"></div>
     <div id="nutri-result"></div>
+    <button onclick="showModal('modal-custom-aliment')" style="width:100%;margin-top:10px;height:40px;border-radius:12px;border:1.5px dashed var(--green-mid);background:transparent;color:var(--green);font-size:13px;font-family:inherit;font-weight:600;cursor:pointer;">&#43; Cr&#233;er un aliment personnalis&#233;</button>
+    <div id="custom-aliments-wrap" style="margin-top:14px;display:none;">
+      <div class="section-hd">Mes aliments</div>
+      <div id="custom-aliments-list"></div>
+    </div>
   </div>
   <div id="nutri-mode-plat" style="display:none;">
     <div class="card" style="margin-bottom:10px;">
@@ -468,7 +499,11 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
         <span id="seance-count-badge" style="background:var(--green);color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:10px;">0 exo</span>
       </div>
       <div id="seance-selected-list"></div>
-      <button class="btn btn-primary" onclick="saveSeance()" style="margin-top:4px;">&#128190; Enregistrer la s&#233;ance</button>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <button class="group-btn" id="btn-superset" onclick="groupSelected(2)" title="Grouper les 2 derniers exos en superset">&#9889; Superset</button>
+        <button class="group-btn tri" id="btn-triset" onclick="groupSelected(3)" title="Grouper les 3 derniers exos en tri-set">&#9889;&#9889; Tri-set</button>
+      </div>
+      <button class="btn btn-primary" onclick="saveSeance()" style="margin-top:8px;">&#128190; Enregistrer la s&#233;ance</button>
     </div>
   </div>
   <!-- HISTORIQUE -->
@@ -562,6 +597,49 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
   </div>
 </div>
 
+<!-- MODAL CUSTOM ALIMENT -->
+<div class="modal-overlay hidden" id="modal-custom-aliment">
+  <div class="modal">
+    <div class="modal-title">&#43; Cr&#233;er un aliment <button class="modal-close" onclick="hideModal('modal-custom-aliment')">&#10005;</button></div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div>
+        <label>Nom de l'aliment</label>
+        <input type="text" id="ca-nom" placeholder="Ex: Skyr nature, Galette de riz&#8230;" />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label>Calories (kcal)</label><input type="number" id="ca-kcal" placeholder="ex. 85" min="0" max="9999" oninput="caPreview()" /></div>
+        <div><label>Prot&#233;ines (g)</label><input type="number" id="ca-prot" placeholder="ex. 10" min="0" max="999" oninput="caPreview()" /></div>
+        <div><label>Lipides (g)</label><input type="number" id="ca-lip" placeholder="ex. 0.5" min="0" max="999" oninput="caPreview()" /></div>
+        <div><label>Glucides (g)</label><input type="number" id="ca-gluc" placeholder="ex. 8" min="0" max="999" oninput="caPreview()" /></div>
+        <div><label>Fibres (g)</label><input type="number" id="ca-fib" placeholder="ex. 0" min="0" max="999" oninput="caPreview()" /></div>
+        <div><label>Cat&#233;gorie</label>
+          <select id="ca-cat">
+            <option value="laitier">Laitier</option>
+            <option value="viande">Viande</option>
+            <option value="poisson">Poisson</option>
+            <option value="legume">L&#233;gume / L&#233;gumineuse</option>
+            <option value="feculent">F&#233;culent / C&#233;r&#233;ale</option>
+            <option value="fruit">Fruit</option>
+            <option value="oleagineux">Ol&#233;agineux / Graine</option>
+            <option value="boisson">Boisson</option>
+            <option value="condiment">Condiment / Sauce</option>
+            <option value="sport">Sport / Suppl&#233;ment</option>
+            <option value="junk">&#192; limiter</option>
+          </select>
+        </div>
+      </div>
+      <!-- PREVIEW FEUX -->
+      <div id="ca-preview" style="background:var(--bg);border-radius:10px;padding:10px 12px;display:none;">
+        <div style="font-size:12px;color:var(--text3);margin-bottom:6px;">Aper&#231;u pour 100g :</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="ca-preview-macros"></div>
+        <div style="margin-top:8px;font-size:12px;font-weight:700;" id="ca-preview-feu"></div>
+      </div>
+    </div>
+    <div style="height:12px;"></div>
+    <button class="btn btn-primary" onclick="saveCustomAliment()">&#10003; Enregistrer l'aliment</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -587,7 +665,7 @@ var ALIMENTS=[
 {n:"Bacon",kcal:541,prot:37,lip:42,gluc:1.4,fib:0,cat:"viande",feu:"rouge"},
 {n:"Lardons (fumés)",kcal:331,prot:20,lip:28,gluc:1,fib:0,cat:"viande",feu:"rouge"},
 {n:"Saucisson sec",kcal:434,prot:26,lip:37,gluc:1,fib:0,cat:"viande",feu:"rouge"},
-{n:"Boudin noir",kcal:250,prot:16,lip:18,gluc:5,flb:0,cat:"viande",feu:"rouge"},
+{n:"Boudin noir",kcal:250,prot:16,lip:18,gluc:5,fib:0,cat:"viande",feu:"rouge"},
 // POISSONS & FRUITS DE MER
 {n:"Saumon (grillé)",kcal:206,prot:22,lip:13,gluc:0,fib:0,cat:"poisson",feu:"vert"},
 {n:"Saumon fumé",kcal:172,prot:25,lip:8,gluc:0,fib:0,cat:"poisson",feu:"vert"},
@@ -885,7 +963,72 @@ var EXERCICES=[
 {n:"Cat-cow (colonne)",grp:"mob",type:"mobilite",desc:"2×10 reps — Mobilité vertébrale"},
 {n:"Pigeon pose (fessiers)",grp:"mob",type:"mobilite",desc:"2×45s — Fessiers, hanche profonde"},
 {n:"Foam rolling (rouleau)",grp:"mob",type:"mobilite",desc:"5-10 min — Récupération musculaire"},
-{n:"Yoga flow (salutation soleil)",grp:"mob",type:"mobilite",desc:"5-10 min — Mobilité + respiration"}
+{n:"Yoga flow (salutation soleil)",grp:"mob",type:"mobilite",desc:"5-10 min — Mobilité + respiration"},
+// PECTORAUX — haltères & variantes
+{n:"Développé couché haltères (prise neutre)",grp:"pec",type:"muscu",desc:"3×10-12 reps — Pectoraux, moins de stress épaules"},
+{n:"Développé décliné haltères",grp:"pec",type:"muscu",desc:"3×10-12 reps — Pectoraux inférieurs"},
+{n:"Écarté incliné haltères",grp:"pec",type:"muscu",desc:"3×12-15 reps — Pectoraux supérieurs, isolation"},
+{n:"Pullover haltère",grp:"pec",type:"muscu",desc:"3×12 reps — Grand dorsal + pectoraux, cage thoracique"},
+{n:"Pompes diamant",grp:"pec",type:"muscu",desc:"3×max — Triceps + pectoraux internes"},
+{n:"Pompes inclinées (pieds surélevés)",grp:"pec",type:"muscu",desc:"3×max — Pectoraux supérieurs"},
+{n:"Pompes déclinées (mains surélevées)",grp:"pec",type:"muscu",desc:"3×max — Pectoraux inférieurs"},
+// DOS — haltères & variantes
+{n:"Rowing haltère accoudé sur banc",grp:"dos",type:"muscu",desc:"3×10-12 reps/côté — Grand dorsal, concentration"},
+{n:"Rowing haltères buste penché",grp:"dos",type:"muscu",desc:"3×10-12 reps — Dos épais bilatéral"},
+{n:"Shrugs haltères",grp:"dos",type:"muscu",desc:"3×15 reps — Trapèzes supérieurs"},
+{n:"Tractions prise serrée",grp:"dos",type:"muscu",desc:"3×max — Grand dorsal interne"},
+{n:"Tractions prise large",grp:"dos",type:"muscu",desc:"3×max — Grand dorsal largeur"},
+{n:"Tractions lestées",grp:"dos",type:"muscu",desc:"3×6-8 reps — Force grand dorsal, surcharge"},
+{n:"Good morning haltères",grp:"dos",type:"muscu",desc:"3×12 reps — Ischio, bas du dos"},
+{n:"Superman haltères",grp:"dos",type:"muscu",desc:"3×15 reps — Bas du dos, érecteurs spinaux"},
+// ÉPAULES — haltères & variantes
+{n:"Arnold press haltères",grp:"ep",type:"muscu",desc:"3×10-12 reps — Épaules 3 faisceaux, rotation"},
+{n:"Élévations latérales assises",grp:"ep",type:"muscu",desc:"4×15 reps — Deltoïdes latéraux, isolation stricte"},
+{n:"Upright row haltères",grp:"ep",type:"muscu",desc:"3×12 reps — Trapèzes + deltoïdes latéraux"},
+{n:"Développé militaire haltère unilatéral",grp:"ep",type:"muscu",desc:"3×10 reps/côté — Stabilisation + épaule"},
+{n:"Oiseau haltères buste penché",grp:"ep",type:"muscu",desc:"3×15 reps — Deltoïdes postérieurs"},
+// BICEPS — haltères & variantes
+{n:"Curl haltères alterné",grp:"bras",type:"muscu",desc:"3×12 reps/bras — Biceps, supination complète"},
+{n:"Curl haltères simultané",grp:"bras",type:"muscu",desc:"3×10-12 reps — Biceps, charge totale"},
+{n:"Curl incliné haltères banc 45°",grp:"bras",type:"muscu",desc:"3×12 reps — Longue portion biceps, étirement max"},
+{n:"Curl pupitre haltère Scott",grp:"bras",type:"muscu",desc:"3×12 reps — Isolation totale biceps"},
+{n:"Curl Zottman",grp:"bras",type:"muscu",desc:"3×12 reps — Biceps montée + brachioradial descente"},
+{n:"Curl 21s haltères",grp:"bras",type:"muscu",desc:"3×21 reps (7+7+7) — Intensité biceps totale"},
+{n:"Curl inversé haltères",grp:"bras",type:"muscu",desc:"3×12 reps — Avant-bras, brachioradial"},
+{n:"Curl araignée haltères",grp:"bras",type:"muscu",desc:"3×12 reps — Pic du biceps, isolation"},
+// TRICEPS — haltères & variantes
+{n:"Extension triceps haltère couché",grp:"bras",type:"muscu",desc:"3×12 reps — Triceps long, amplitude maximale"},
+{n:"Extension triceps haltère assis",grp:"bras",type:"muscu",desc:"3×12 reps — Triceps bilatéral au-dessus tête"},
+{n:"Kick-back haltère unilatéral",grp:"bras",type:"muscu",desc:"3×15 reps/côté — Isolation triceps, contraction peak"},
+{n:"Overhead triceps haltère une main",grp:"bras",type:"muscu",desc:"3×12 reps/côté — Longue portion triceps"},
+// JAMBES — haltères & variantes
+{n:"Squat goblet sumo haltère",grp:"jambes",type:"muscu",desc:"3×15 reps — Adducteurs, fessiers, quadriceps"},
+{n:"Fentes latérales haltères",grp:"jambes",type:"muscu",desc:"3×12 reps/jambe — Adducteurs, fessiers"},
+{n:"Fentes inversées haltères",grp:"jambes",type:"muscu",desc:"3×12 reps/jambe — Quadriceps, équilibre"},
+{n:"Fentes marchées haltères",grp:"jambes",type:"muscu",desc:"3×20 reps — Quadriceps, fessiers, cardio"},
+{n:"Romanian deadlift haltères",grp:"jambes",type:"muscu",desc:"3×12 reps — Ischio-jambiers, fessiers"},
+{n:"Single-leg deadlift haltère",grp:"jambes",type:"muscu",desc:"3×10 reps/jambe — Ischio, équilibre, fessiers"},
+{n:"Step-up haltères",grp:"jambes",type:"muscu",desc:"3×12 reps/jambe — Fessiers, quadriceps fonctionnel"},
+{n:"Glute kickback quadrupédie",grp:"jambes",type:"muscu",desc:"3×20 reps/jambe — Fessiers isolation"},
+{n:"Pont fessier glute bridge",grp:"jambes",type:"muscu",desc:"3×20 reps — Fessiers, lombaires"},
+{n:"Mollets assis seated calf raise",grp:"jambes",type:"muscu",desc:"4×20 reps — Soléaire"},
+// ABDOS — variantes
+{n:"Crunch oblique",grp:"abdos",type:"muscu",desc:"3×20 reps/côté — Obliques"},
+{n:"Planche latérale",grp:"abdos",type:"muscu",desc:"3×30s/côté — Obliques, stabilisation"},
+{n:"Planche dynamique shoulder tap",grp:"abdos",type:"muscu",desc:"3×20 reps — Gainage anti-rotation"},
+{n:"Dead bug",grp:"abdos",type:"muscu",desc:"3×10 reps/côté — Core profond, coordination"},
+{n:"Hollow body hold",grp:"abdos",type:"muscu",desc:"3×30s — Gainage gymnastics-style"},
+{n:"Toes to bar",grp:"abdos",type:"muscu",desc:"3×10-12 reps — Abdos + flexion hanches"},
+{n:"Crunch avec haltère",grp:"abdos",type:"muscu",desc:"3×15-20 reps — Abdos droits avec surcharge"},
+{n:"Russian twist haltère",grp:"abdos",type:"muscu",desc:"3×20 reps — Obliques avec résistance"},
+{n:"L-sit parallèles",grp:"abdos",type:"muscu",desc:"3×15-20s — Abdos + triceps + force totale"},
+// FULL BODY & FONCTIONNEL
+{n:"Clean and press haltères",grp:"dos",type:"muscu",desc:"3×8 reps — Full body, puissance, épaules"},
+{n:"Thruster haltères",grp:"jambes",type:"muscu",desc:"3×10 reps — Squat + press, cardio-force"},
+{n:"Farmer walk haltères",grp:"dos",type:"muscu",desc:"3×30m — Grip, trapèzes, core, cardio"},
+{n:"Turkish get-up",grp:"abdos",type:"muscu",desc:"3×3 reps/côté — Stabilité totale, mobilité, force"},
+{n:"Devil press haltères",grp:"pec",type:"muscu",desc:"3×8 reps — Burpee + snatch, full body intense"}
+
 ];
 
 // ===================== STATE =====================
@@ -900,6 +1043,15 @@ var currentExoFilter='all';
 var currentSportTab='programme';
 var platIngredients=[];
 var nutriMode='aliment';
+// Sport constants
+var TYPE_LABELS={muscu:'Muscu 💪',cardio:'Cardio 🏃',hiit:'HIIT ⚡',mob:'Mobilité 🧘',repos:'Repos 😴'};
+var TYPE_EMOJI={muscu:'🏋️',cardio:'🏃',hiit:'⚡',mob:'🧘',repos:'😴'};
+var TYPE_BADGE={muscu:'badge-muscu',cardio:'badge-cardio',hiit:'badge-hiit',mob:'badge-mob',repos:'badge-repos'};
+var TYPE_CARD={muscu:'prog-card-muscu',cardio:'prog-card-cardio',hiit:'prog-card-hiit',mob:'prog-card-mob',repos:'prog-card-repos'};
+var JOURS_ORDER=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+var JOURS_SHORT=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+var GRP_LABELS={all:'Tous',pec:'Pecto',dos:'Dos',ep:'Épaules',bras:'Bras',jambes:'Jambes',abdos:'Abdos',cardio:'Cardio',mob:'Mobilité'};
+var GRP_BADGE_STYLE={pec:'background:#ede9fe;color:#5b21b6',dos:'background:#e0f2fe;color:#0369a1',ep:'background:#fce7f3;color:#9d174d',bras:'background:#fef3c7;color:#92400e',jambes:'background:#ecfdf5;color:#065f46',abdos:'background:#fff7ed;color:#9a3412',cardio:'background:#fef9c3;color:#713f12',mob:'background:#f3f4f6;color:#374151'};
 
 // ===================== ONBOARDING =====================
 var obStep=0;
@@ -940,7 +1092,7 @@ function obFinish(){
   startApp();
 }
 function startApp(){document.getElementById('onboarding').style.display='none';document.getElementById('app').style.display='block';document.getElementById('main-nav').style.display='flex';initApp();}
-(function(){if(profil)startApp();})();
+(function(){try{if(profil)startApp();}catch(e){console.log("init error",e);}})();
 
 // ===================== INIT =====================
 function initApp(){
@@ -1232,12 +1384,7 @@ function profilRecalcul(){
 }
 
 // ===================== SPORT =====================
-var TYPE_LABELS={muscu:'Muscu 💪',cardio:'Cardio 🏃',hiit:'HIIT ⚡',mob:'Mobilité 🧘',repos:'Repos 😴'};
-var TYPE_EMOJI={muscu:'🏋️',cardio:'🏃',hiit:'⚡',mob:'🧘',repos:'😴'};
-var TYPE_BADGE={muscu:'badge-muscu',cardio:'badge-cardio',hiit:'badge-hiit',mob:'badge-mob',repos:'badge-repos'};
-var TYPE_CARD={muscu:'prog-card-muscu',cardio:'prog-card-cardio',hiit:'prog-card-hiit',mob:'prog-card-mob',repos:'prog-card-repos'};
-var JOURS_ORDER=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
-var JOURS_SHORT=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+// Sport constants moved to top
 
 function sportTab(tab,el){
   currentSportTab=tab;
@@ -1300,8 +1447,7 @@ function addSeanceProg(){
 function deleteProg(i){programme.splice(i,1);localStorage.setItem('ns_programme',JSON.stringify(programme));renderProg();}
 
 // ===================== CRÉER SÉANCE =====================
-var GRP_LABELS={all:'Tous',pec:'Pecto',dos:'Dos',ep:'Épaules',bras:'Bras',jambes:'Jambes',abdos:'Abdos',cardio:'Cardio',mob:'Mobilité'};
-var GRP_BADGE_STYLE={pec:'background:#ede9fe;color:#5b21b6',dos:'background:#e0f2fe;color:#0369a1',ep:'background:#fce7f3;color:#9d174d',bras:'background:#fef3c7;color:#92400e',jambes:'background:#ecfdf5;color:#065f46',abdos:'background:#fff7ed;color:#9a3412',cardio:'background:#fef9c3;color:#713f12',mob:'background:#f3f4f6;color:#374151'};
+// GRP_LABELS moved to top
 
 function buildExoFilterChips(){
   var chips=document.getElementById('exo-filter-chips');
@@ -1357,25 +1503,95 @@ function toggleExo(nom){
   filterExos();renderSeanceSelected();
 }
 
+
+// seanceBlocks: ordered list of {type:'single'|'superset'|'triset', exos:[nom,...]}
+var seanceBlocks=[];
+
+function exoRow(nom,blockType){
+  var s=selectedExos[nom];var safeN=nom.replace(/'/g,"\'");
+  return '<div class="sel-exo-row">'
+    +'<button onclick="removeExoByIndex('+idx+')" style="background:none;border:none;font-size:16px;color:var(--text3);cursor:pointer;flex-shrink:0;padding:0;">×</button>'
+    +'<div class="sel-exo-name">'+nom+'</div>'
+    +'<input type="number" value="'+s.series+'" min="1" max="20" class="sel-exo-input" oninput="updateExoSeries('+idx+',+this.value)" />'
+    +'<span class="sel-exo-sep">×</span>'
+    +'<input type="text" value="'+s.reps+'" class="sel-exo-input" style="width:58px;" oninput="updateExoReps('+idx+',this.value)" />'
+    +'<span class="sel-exo-sep">reps</span></div>';
+}
+
 function renderSeanceSelected(){
   var keys=Object.keys(selectedExos);
   var wrap=document.getElementById('seance-selected-wrap');
   var badge=document.getElementById('seance-count-badge');
   if(badge) badge.textContent=keys.length+' exo'+(keys.length>1?'s':'');
-  if(!keys.length){wrap.style.display='none';return;}
+  if(!keys.length){wrap.style.display='none';seanceBlocks=[];return;}
   wrap.style.display='block';
-  document.getElementById('seance-selected-list').innerHTML=keys.map(function(nom){
-    var s=selectedExos[nom];var safeN=nom.replace(/'/g,"\\'");
-    return '<div class="sel-exo-row"><button onclick="exoLiveAdd(\''+safeN+'\')" style="background:none;border:none;font-size:16px;color:var(--text3);cursor:pointer;flex-shrink:0;padding:0;">×</button><div class="sel-exo-name">'+nom+'</div><input type="number" value="'+s.series+'" min="1" max="20" class="sel-exo-input" oninput="selectedExos[\''+safeN+'\'].series=+this.value" /><span class="sel-exo-sep">×</span><input type="text" value="'+s.reps+'" class="sel-exo-input" style="width:58px;" oninput="selectedExos[\''+safeN+'\'].reps=this.value" /><span class="sel-exo-sep">reps</span></div>';
+  // Sync: add new exos as single blocks
+  var inBlocks=[];
+  seanceBlocks.forEach(function(b){b.exos.forEach(function(n){inBlocks.push(n);});});
+  keys.forEach(function(nom){if(inBlocks.indexOf(nom)<0) seanceBlocks.push({type:'single',exos:[nom]});});
+  // Remove deleted exos
+  seanceBlocks=seanceBlocks.map(function(b){return{type:b.type,exos:b.exos.filter(function(n){return !!selectedExos[n];})};}).filter(function(b){return b.exos.length>0;});
+  // Fix types if group shrank
+  seanceBlocks=seanceBlocks.map(function(b){if(b.exos.length===1)b.type='single';if(b.exos.length===2&&b.type==='triset')b.type='superset';return b;});
+  // Render blocks
+  var html=seanceBlocks.map(function(block,bi){
+    if(block.type==='single') return exoRow(block.exos[0],'single');
+    var isSS=block.type==='superset';
+    var cls=isSS?'superset-block':'triset-block';
+    var lbl=isSS?'SUPERSET':'TRI-SET';
+    var lblCls=isSS?'superset-label':'triset-label';
+    var conn=isSS?'superset-connector':'triset-connector';
+    var rows=block.exos.map(function(nom,ei){
+      return exoRow(nom,block.type)+(ei<block.exos.length-1?'<div class="'+conn+'">↺ enchâîner</div>':'');
+    }).join('');
+    return '<div class="'+cls+'"><span class="'+lblCls+'">'+lbl+'</span>'
+      +'<button class="ungroup-btn" onclick="ungroupBlock('+bi+')">Dissocier</button>'+rows+'</div>';
   }).join('');
+  document.getElementById('seance-selected-list').innerHTML=html;
+  // Group buttons state
+  var ungrouped=seanceBlocks.filter(function(b){return b.type==='single';}).length;
+  var btnS=document.getElementById('btn-superset');var btnT=document.getElementById('btn-triset');
+  if(btnS) btnS.disabled=ungrouped<2;
+  if(btnT) btnT.disabled=ungrouped<3;
+}
+
+function groupSelected(n){
+  var singles=seanceBlocks.reduce(function(acc,b,i){if(b.type==='single')acc.push(i);return acc;},[]);
+  if(singles.length<n){toast('Ajoute '+(n-singles.length)+' exo'+(n-singles.length>1?'s':'')+' solo de plus');return;}
+  var toMerge=singles.slice(-n);
+  var exos=toMerge.map(function(i){return seanceBlocks[i].exos[0];});
+  var type=n===2?'superset':'triset';
+  var insertAt=Math.min.apply(null,toMerge);
+  toMerge.slice().reverse().forEach(function(i){seanceBlocks.splice(i,1);});
+  seanceBlocks.splice(insertAt,0,{type:type,exos:exos});
+  renderSeanceSelected();
+  toast(type==='superset'?'Superset créé ⚡':'Tri-set créé ⚡⚡');
+}
+
+function ungroupBlock(bi){
+  var block=seanceBlocks[bi];
+  var singles=block.exos.map(function(n){return{type:'single',exos:[n]};});
+  Array.prototype.splice.apply(seanceBlocks,[bi,1].concat(singles));
+  renderSeanceSelected();
+}
+
+function removeExoFromBlocks(nom){
+  exoLiveAdd(nom);
+  renderSeanceSelected();
 }
 
 function saveSeance(){
   var nom=document.getElementById('seance-nom').value.trim()||'Séance sans titre';
   var keys=Object.keys(selectedExos);if(!keys.length){toast('Sélectionne au moins un exercice');return;}
-  var seance={nom:nom,date:new Date().toLocaleDateString('fr-FR'),timestamp:Date.now(),exercices:keys.map(function(k){return{nom:k,series:selectedExos[k].series,reps:selectedExos[k].reps};})};
+  var exercices=[];
+  seanceBlocks.forEach(function(block){
+    if(block.type==='single'){var n=block.exos[0];var s=selectedExos[n];exercices.push({nom:n,series:s.series,reps:s.reps,type:'single'});}
+    else{block.exos.forEach(function(n,ei){var s=selectedExos[n];exercices.push({nom:n,series:s.series,reps:s.reps,type:block.type,groupStart:ei===0,groupEnd:ei===block.exos.length-1});});}
+  });
+  var seance={nom:nom,date:new Date().toLocaleDateString('fr-FR'),timestamp:Date.now(),exercices:exercices};
   seancesHist.unshift(seance);localStorage.setItem('ns_seances',JSON.stringify(seancesHist));
-  selectedExos={};document.getElementById('seance-nom').value='';document.getElementById('exo-live-search').value='';
+  selectedExos={};seanceBlocks=[];
+  document.getElementById('seance-nom').value='';document.getElementById('exo-live-search').value='';
   filterExos();renderSeanceSelected();exoLiveSearch('');
   toast('Séance "'+nom+'" enregistrée ✅');
   sportTab('historique',document.getElementById('stab-historique'));
@@ -1386,7 +1602,21 @@ function renderSportHist(){
   if(!seancesHist.length){list.innerHTML='<div class="empty-state sport-anim"><div class="empty-icon">🏋️</div>Aucune séance créée.<br>Utilise "Créer séance" !</div>';return;}
   list.innerHTML=seancesHist.map(function(s,i){
     var animCls='sport-anim-'+Math.min(i,5);
-    var exoPills=s.exercices.map(function(e){return '<span class="hist-exo-pill">'+e.nom+' <strong>'+e.series+'×'+e.reps+'</strong></span>';}).join('');
+    var exoPills='';var i=0;
+  while(i<s.exercices.length){
+    var e=s.exercices[i];
+    if((e.type==='superset'||e.type==='triset')&&e.groupStart){
+      var grpExos=[e];var j=i+1;
+      while(j<s.exercices.length&&(s.exercices[j].type===e.type)&&!s.exercices[j].groupStart){grpExos.push(s.exercices[j]);j++;}
+      var clr=e.type==='superset'?'background:#ede9fe;border-color:#c4b5fd;':'background:#fef3c7;border-color:#fcd34d;';
+      var lbl=e.type==='superset'?'SS':'TS';
+      exoPills+='<span class="hist-exo-pill" style="'+clr+'font-weight:700;">'+lbl+'⚡ '+grpExos.map(function(x){return x.nom+' '+x.series+'×'+x.reps;}).join(' + ')+'</span>';
+      i=j;
+    } else {
+      exoPills+='<span class="hist-exo-pill">'+e.nom+' <strong>'+e.series+'×'+e.reps+'</strong></span>';
+      i++;
+    }
+  }
     return '<div class="hist-card '+animCls+'"><div class="hist-card-top"><div class="hist-icon">🏋️</div><div style="flex:1;"><div class="hist-nom">'+s.nom+'</div><div class="hist-date">'+s.date+' · '+s.exercices.length+' exercice'+(s.exercices.length>1?'s':'')+'</div></div><button onclick="deleteSeance('+i+')" style="background:none;border:none;font-size:16px;color:var(--text3);cursor:pointer;opacity:.5;">×</button></div><div class="hist-exos-grid">'+exoPills+'</div></div>';
   }).join('');
 }
@@ -1396,14 +1626,14 @@ function deleteSeance(i){seancesHist.splice(i,1);localStorage.setItem('ns_seance
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2400);}
 
 // exo-card styles needed
-document.head.insertAdjacentHTML('beforeend','<style>.exo-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s;}.exo-card.selected{border-color:var(--green);background:#f0fdf4;}.exo-card.selected .exo-check{opacity:1;}.exo-info{flex:1;}.exo-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}.exo-desc{font-size:11px;color:var(--text3);}.exo-check{width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;opacity:0;transition:opacity .15s;flex-shrink:0;}</style>');
+// exo-card styles moved to CSS
 
 
 // ===================== MENU GENERATOR =====================
 var menuIngredients = [];   // aliments disponibles
 var menuObjectif = 'auto';  // auto / deficit / equilibre / surplus
 var lastMenu = null;        // dernier menu généré
-var menussaved = JSON.parse(localStorage.getItem('ns_menus')||'[]');
+var menusaved = JSON.parse(localStorage.getItem('ns_menus')||'[]');
 
 var REPAS_DEF = [
   {id:'pdj',  label:'Petit-déjeuner', emoji:'🌅', pctKcal:0.25},
@@ -1631,6 +1861,7 @@ function addMenuJournal() {
   localStorage.setItem('ns_journal', JSON.stringify(journal));
   toast('Menu ajouté au journal ✅');
   renderJournal();
+  renderCustomAliments();
 }
 
 function saveMenu() {
@@ -1669,6 +1900,103 @@ function deleteMenuSaved(i) {
   menusaved.splice(i,1);
   localStorage.setItem('ns_menus', JSON.stringify(menusaved));
   renderMenuSaved();
+}
+
+
+// ===================== ALIMENTS PERSONNALISÉS =====================
+var customAliments = JSON.parse(localStorage.getItem('ns_custom_aliments')||'[]');
+
+// Merge custom aliments into ALIMENTS at runtime
+function mergeCustomAliments() {
+  customAliments.forEach(function(a) {
+    if (!ALIMENTS.find(function(x){return x.n===a.n;})) {
+      ALIMENTS.push(a);
+    }
+  });
+}
+mergeCustomAliments();
+
+function caCalcFeu(kcal, prot, lip, gluc) {
+  // Score simple : ratio protéines/kcal, niveau lipides saturés estimé, sucres
+  if (!kcal) return 'vert';
+  var protRatio = (prot*4) / kcal; // % kcal from protein
+  var glucRatio = (gluc*4) / kcal;
+  if (lip > 25 || gluc > 50) return 'rouge';
+  if (protRatio >= 0.25) return 'vert';
+  if (glucRatio > 0.6 || lip > 15) return 'orange';
+  return 'vert';
+}
+
+function caPreview() {
+  var kcal = +document.getElementById('ca-kcal').value||0;
+  var prot = +document.getElementById('ca-prot').value||0;
+  var lip  = +document.getElementById('ca-lip').value||0;
+  var gluc = +document.getElementById('ca-gluc').value||0;
+  var fib  = +document.getElementById('ca-fib').value||0;
+  if (!kcal && !prot && !lip && !gluc) { document.getElementById('ca-preview').style.display='none'; return; }
+  var feu  = caCalcFeu(kcal,prot,lip,gluc);
+  var feuColor = feu==='vert'?'#22c55e':feu==='orange'?'#f97316':'#ef4444';
+  var feuLabel = feu==='vert'?'🟢 Feu vert':feu==='orange'?'🟠 Feu orange':'🔴 Feu rouge';
+  document.getElementById('ca-preview').style.display='block';
+  document.getElementById('ca-preview-macros').innerHTML =
+    '<span style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:600;">'+kcal+' kcal</span>'
+    +'<span style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:600;">'+prot+'g prot.</span>'
+    +'<span style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:600;">'+lip+'g lip.</span>'
+    +'<span style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:600;">'+gluc+'g gluc.</span>'
+    +(fib?'<span style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:600;">'+fib+'g fibres</span>':'');
+  document.getElementById('ca-preview-feu').innerHTML = '<span style="color:'+feuColor+';">'+feuLabel+' — attribué automatiquement</span>';
+}
+
+function saveCustomAliment() {
+  var nom  = document.getElementById('ca-nom').value.trim();
+  var kcal = +document.getElementById('ca-kcal').value||0;
+  var prot = +document.getElementById('ca-prot').value||0;
+  var lip  = +document.getElementById('ca-lip').value||0;
+  var gluc = +document.getElementById('ca-gluc').value||0;
+  var fib  = +document.getElementById('ca-fib').value||0;
+  var cat  = document.getElementById('ca-cat').value;
+  if (!nom) { toast('Entre un nom pour cet aliment'); return; }
+  if (!kcal && !prot) { toast('Entre au moins les calories ou les protéines'); return; }
+  if (ALIMENTS.find(function(a){return a.n===nom;})) { toast('Cet aliment existe déjà !'); return; }
+  var feu = caCalcFeu(kcal,prot,lip,gluc);
+  var aliment = {n:nom, kcal:kcal, prot:prot, lip:lip, gluc:gluc, fib:fib, cat:cat, feu:feu, custom:true};
+  customAliments.push(aliment);
+  ALIMENTS.push(aliment);
+  localStorage.setItem('ns_custom_aliments', JSON.stringify(customAliments));
+  // Reset form
+  ['ca-nom','ca-kcal','ca-prot','ca-lip','ca-gluc','ca-fib'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('ca-preview').style.display='none';
+  hideModal('modal-custom-aliment');
+  renderCustomAliments();
+  toast(nom+' ajouté à ta base ✅');
+}
+
+function renderCustomAliments() {
+  var wrap = document.getElementById('custom-aliments-wrap');
+  var list = document.getElementById('custom-aliments-list');
+  if (!customAliments.length) { wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  list.innerHTML = customAliments.map(function(a,i){
+    var feuColor = a.feu==='vert'?'#22c55e':a.feu==='orange'?'#f97316':'#ef4444';
+    return '<div class="card-sm" style="display:flex;align-items:center;gap:10px;">'
+      +'<span style="width:12px;height:12px;border-radius:50%;background:'+feuColor+';flex-shrink:0;"></span>'
+      +'<div style="flex:1;">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text);">'+a.n+'</div>'
+      +'<div style="font-size:11px;color:var(--text3);">'+a.kcal+' kcal · '+a.prot+'g prot · '+a.lip+'g lip · '+a.gluc+'g gluc</div>'
+      +'</div>'
+      +'<button onclick="useCustomAliment('+i+')" style="background:var(--green-light);border:1px solid var(--green-mid);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--green);cursor:pointer;font-weight:600;">Utiliser</button>'
+      +'<button onclick="deleteCustomAliment('+i+')" style="background:none;border:none;font-size:16px;color:var(--text3);cursor:pointer;">&#215;</button>'
+      +'</div>';
+  }).join('');
+}
+
+function deleteCustomAliment(i) {
+  var nom = customAliments[i].n;
+  customAliments.splice(i,1);
+  ALIMENTS = ALIMENTS.filter(function(a){return !(a.custom && a.n===nom);});
+  localStorage.setItem('ns_custom_aliments', JSON.stringify(customAliments));
+  renderCustomAliments();
+  toast('Aliment supprimé');
 }
 
 </script>
