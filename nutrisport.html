@@ -244,6 +244,16 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
 .group-btn:disabled{opacity:.35;cursor:default;}
 .ungroup-btn{background:none;border:none;font-size:11px;color:#7c3aed;cursor:pointer;font-weight:600;position:absolute;top:4px;right:8px;}
 .triset-block .ungroup-btn{color:#d97706;}
+
+/* JAUGES JOURNAL */
+.jauge-row{margin-bottom:10px;}
+.jauge-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.jauge-label{font-size:12px;font-weight:600;color:var(--text2);}
+.jauge-vals{font-size:11px;color:var(--text3);}
+.jauge-track{height:10px;background:#f0f0f0;border-radius:5px;overflow:visible;position:relative;}
+.jauge-fill{height:100%;border-radius:5px;transition:width .4s ease;position:relative;}
+.jauge-marker{position:absolute;top:-3px;width:2px;height:16px;background:rgba(0,0,0,.2);border-radius:1px;}
+.jauge-pct{font-size:11px;font-weight:700;margin-left:6px;}
 </style>
 </head>
 <body>
@@ -440,16 +450,27 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
     <div class="hero-pills" id="jour-hero-tags"></div>
     <button onclick="showPage('journal');renderJournal();" class="hero-action-btn" style="font-size:11px;font-weight:700;width:auto;border-radius:10px;padding:0 10px;">Aujourd'hui</button>
   </div>
-  <div class="stats-row">
-    <div class="stat-box"><div class="stat-val" id="j-kcal">0</div><div class="stat-lbl">kcal</div></div>
-    <div class="stat-box"><div class="stat-val" id="j-prot">0g</div><div class="stat-lbl">prot&#233;ines</div></div>
-    <div class="stat-box"><div class="stat-val" id="j-repas">0</div><div class="stat-lbl">repas</div></div>
-  </div>
-  <div style="margin-bottom:12px;">
-    <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:var(--text2);">Calories</span><span style="font-size:12px;color:var(--text3);" id="j-kcal-pct"></span></div>
-    <div class="prog-bar"><div class="prog-fill" id="j-pbar-kcal" style="width:0%"></div></div>
-    <div style="display:flex;justify-content:space-between;margin-top:8px;margin-bottom:4px;"><span style="font-size:12px;color:var(--text2);">Prot&#233;ines</span><span style="font-size:12px;color:var(--text3);" id="j-prot-pct"></span></div>
-    <div class="prog-bar"><div class="prog-fill" id="j-pbar-prot" style="width:0%"></div></div>
+  <!-- DASHBOARD JAUGES -->
+  <div id="jour-dashboard" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px;">
+    <!-- LIGNE STATS -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+      <div style="text-align:center;">
+        <div style="font-size:22px;font-weight:800;color:var(--green);" id="j-kcal">0</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px;">kcal</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:22px;font-weight:800;color:var(--green);" id="j-prot">0g</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px;">prot&#233;ines</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:22px;font-weight:800;color:var(--green);" id="j-repas">0</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:1px;">aliments</div>
+      </div>
+    </div>
+    <!-- JAUGES -->
+    <div id="jour-jauges"></div>
+    <!-- BILAN GLOBAL -->
+    <div id="jour-bilan-global" style="margin-top:10px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:600;text-align:center;display:none;"></div>
   </div>
   <div class="card"><div id="jour-items-list"><div class="empty-state"><div class="empty-icon">&#127869;&#65039;</div>Aucun aliment ce jour.<br>Utilise la recherche nutrition !</div></div></div>
   <div style="margin-top:16px;"><div class="section-hd">Historique</div><div id="jour-history"></div></div>
@@ -1400,27 +1421,134 @@ function selectAliment(nom){
   document.getElementById('nutri-search').value=a.n;
   renderAlimentCard(a,100);
 }
-function renderAlimentCard(a,qty){
-  var ratio=qty/100;
-  var feuColor=a.feu==='vert'?'#22c55e':a.feu==='orange'?'#f97316':'#ef4444';
-  var feuLabel=a.feu==='vert'?'Vert 🟢':a.feu==='orange'?'Orange 🟠':'Rouge 🔴';
-  var conseil=getConseil(a,profil.but);
-  var res=document.getElementById('nutri-result');
-  res.innerHTML='<div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><span style="width:34px;height:34px;border-radius:50%;background:'+feuColor+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">'+(a.feu==='vert'?'✅':a.feu==='orange'?'⚠️':'❌')+'</span><div><div style="font-size:16px;font-weight:700;color:var(--text);">'+a.n+'</div><div style="font-size:12px;color:var(--text3);">'+feuLabel+'</div></div></div><div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><label style="margin:0;font-size:12px;white-space:nowrap;">Quantité :</label><input type="number" value="'+qty+'" min="1" max="2000" id="nutri-qty-input" oninput="updateQty(this.value)" style="width:80px;height:36px;margin:0;" /><span style="font-size:12px;color:var(--text3);">grammes</span></div><div class="macros"><div class="macro"><div class="macro-val">'+Math.round(a.kcal*ratio)+'</div><div class="macro-lbl">kcal</div></div><div class="macro"><div class="macro-val">'+Math.round(a.prot*ratio*10)/10+'g</div><div class="macro-lbl">protéines</div></div><div class="macro"><div class="macro-val">'+Math.round(a.lip*ratio*10)/10+'g</div><div class="macro-lbl">lipides</div></div><div class="macro"><div class="macro-val">'+Math.round(a.gluc*ratio*10)/10+'g</div><div class="macro-lbl">glucides</div></div></div><div class="conseil conseil-'+a.feu+'">'+conseil+'</div><button class="btn btn-primary" style="margin-top:12px;" onclick="openAddAliment()">+ Ajouter au journal</button></div>';
-}
-function updateQty(v){if(currentAliment&&v>0) renderAlimentCard(currentAliment,+v);}
-function getConseil(a,but){
-  if(a.feu==='rouge') return '❌ À éviter — cet aliment est défavorable pour ton objectif.';
-  var msgs=[];
-  if(a.prot>15) msgs.push('Riche en protéines ('+a.prot+'g/100g)');
-  if(a.fib>5) msgs.push('Bonne source de fibres');
-  if(a.kcal<100&&a.prot>8) msgs.push('Rapport kcal/protéines excellent');
-  if(a.feu==='vert'){
-    if(but==='perte') return '✅ Bon choix ! '+(msgs.length?msgs.join(', ')+'.':'')+' Favorable pour la perte de poids.';
-    if(but==='recomp') return '✅ Excellent ! '+(msgs.length?msgs.join(', ')+'.':'')+' Parfait pour la recomposition.';
-    return '✅ Très bien ! '+(msgs.length?msgs.join(', ')+'.':'')+' Soutient la prise de muscle.';
+function calcFeuQty(a, qty) {
+  // Feu dynamique selon quantité + objectifs du profil
+  var r = qty/100;
+  var kcalPortion = a.kcal * r;
+  var protPortion = a.prot * r;
+  var lipPortion  = a.lip  * r;
+  var glucPortion = a.gluc * r;
+  var kcalCible = profil ? profil.kcal_cible : 2000;
+  var protCible = profil ? profil.prot_cible : 150;
+
+  // % de l'objectif journalier couvert par cette portion
+  var pctKcal = kcalPortion / kcalCible;
+  var pctProt = protPortion / protCible;
+
+  // Seuils de danger par portion
+  var trop_calorique = pctKcal > 0.45;           // >45% kcal journalières en 1 portion
+  var tres_calorique = pctKcal > 0.30;           // >30%
+  var trop_lipides   = lipPortion > 40;           // >40g lipides en une portion
+  var trop_glucides  = glucPortion > 80;          // >80g glucides simples
+  var bonne_proteine = pctProt > 0.25;            // couvre >25% besoins protéines
+
+  // Aliment intrinsèquement rouge -> reste rouge quelle que soit la quantité
+  if (a.feu === 'rouge') {
+    if (qty <= 20) return 'orange';    // petite quantité -> orange tolérable
+    return 'rouge';
   }
-  return '⚠️ Correct — à consommer avec modération. '+(msgs.length?msgs.join(', ')+'.':'');
+
+  // Aliment vert/orange -> peut devenir rouge si dose excessive
+  if (trop_calorique || trop_lipides || trop_glucides) return 'rouge';
+  if (tres_calorique && a.feu === 'orange') return 'rouge';
+  if (a.feu === 'orange' && qty > 150) return 'orange';  // reste orange
+
+  // Bonus : petite portion d'un aliment orange -> passe vert
+  if (a.feu === 'orange' && qty <= 30) return 'vert';
+
+  return a.feu; // sinon couleur intrinsèque
+}
+
+function renderAlimentCard(a, qty) {
+  var ratio = qty/100;
+  var feuDyn = calcFeuQty(a, qty);
+  var feuColor = feuDyn==='vert'?'#22c55e':feuDyn==='orange'?'#f97316':'#ef4444';
+  var feuIcon  = feuDyn==='vert'?'✅':feuDyn==='orange'?'⚠️':'❌';
+  var feuLabel = feuDyn==='vert'?'Vert 🟢':feuDyn==='orange'?'Orange 🟠':'Rouge 🔴';
+
+  // Macros de la portion
+  var kcalP = Math.round(a.kcal*ratio);
+  var protP = Math.round(a.prot*ratio*10)/10;
+  var lipP  = Math.round(a.lip *ratio*10)/10;
+  var glucP = Math.round(a.gluc*ratio*10)/10;
+
+  // % objectif journalier
+  var kcalCible = profil?profil.kcal_cible:2000;
+  var protCible = profil?profil.prot_cible:150;
+  var pctKcal = Math.round(kcalP/kcalCible*100);
+  var pctProt = Math.round(protP/protCible*100);
+
+  // Barres de progression
+  var barKcalW = Math.min(pctKcal,100);
+  var barProtW = Math.min(pctProt,100);
+  var barKcalColor = pctKcal>45?'#ef4444':pctKcal>30?'#f97316':'#22c55e';
+  var barProtColor = pctProt>40?'#ef4444':pctProt>25?'#22c55e':'#f97316';
+
+  var conseil = getConseil(a, feuDyn, qty, kcalP, protP, profil?profil.but:'perte');
+
+  var res = document.getElementById('nutri-result');
+  res.innerHTML =
+    '<div class="card">'
+    // Header feu
+    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
+    +'<span style="width:34px;height:34px;border-radius:50%;background:'+feuColor+';display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">'+feuIcon+'</span>'
+    +'<div><div style="font-size:16px;font-weight:700;color:var(--text);">'+a.n+'</div>'
+    +'<div style="font-size:12px;color:var(--text3);">'+feuLabel+' · pour '+qty+'g</div></div></div>'
+    // Quantité
+    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">'
+    +'<label style="margin:0;font-size:12px;white-space:nowrap;">Quantité :</label>'
+    +'<input type="number" value="'+qty+'" min="1" max="2000" id="nutri-qty-input" oninput="updateQty(this.value)" style="width:80px;height:36px;margin:0;" />'
+    +'<span style="font-size:12px;color:var(--text3);">grammes</span></div>'
+    // Macros
+    +'<div class="macros">'
+    +'<div class="macro"><div class="macro-val">'+kcalP+'</div><div class="macro-lbl">kcal</div></div>'
+    +'<div class="macro"><div class="macro-val">'+protP+'g</div><div class="macro-lbl">protéines</div></div>'
+    +'<div class="macro"><div class="macro-val">'+lipP+'g</div><div class="macro-lbl">lipides</div></div>'
+    +'<div class="macro"><div class="macro-val">'+glucP+'g</div><div class="macro-lbl">glucides</div></div>'
+    +'</div>'
+    // Barres % objectif journalier
+    +'<div style="margin:10px 0 4px;">'
+    +'<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:3px;"><span>% objectif kcal</span><span style="font-weight:700;color:'+barKcalColor+';">'+pctKcal+'%</span></div>'
+    +'<div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:6px;"><div style="height:100%;width:'+barKcalW+'%;background:'+barKcalColor+';border-radius:3px;transition:width .3s;"></div></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:3px;"><span>% objectif protéines</span><span style="font-weight:700;color:'+barProtColor+';">'+pctProt+'%</span></div>'
+    +'<div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+barProtW+'%;background:'+barProtColor+';border-radius:3px;transition:width .3s;"></div></div>'
+    +'</div>'
+    // Conseil
+    +'<div class="conseil conseil-'+feuDyn+'" style="margin-top:10px;">'+conseil+'</div>'
+    +'<button class="btn btn-primary" style="margin-top:12px;" onclick="openAddAliment()">+ Ajouter au journal</button>'
+    +'</div>';
+}
+
+function updateQty(v) { if(currentAliment && v>0) renderAlimentCard(currentAliment, +v); }
+
+function getConseil(a, feuDyn, qty, kcalP, protP, but) {
+  var msgs = [];
+  var kcalCible = profil?profil.kcal_cible:2000;
+  var protCible = profil?profil.prot_cible:150;
+  var pctKcal = Math.round(kcalP/kcalCible*100);
+  var pctProt = Math.round(protP/protCible*100);
+
+  if (feuDyn === 'rouge') {
+    if (a.feu === 'rouge') return '❌ Aliment à éviter — trop riche en graisses saturées, sucres rapides ou additifs.';
+    if (pctKcal > 45) return '❌ Portion trop importante — '+kcalP+' kcal représentent '+pctKcal+'% de ton objectif journalier. Réduis à '+ Math.round(kcalCible*0.30/a.kcal*100)+'g max.';
+    if (a.lip*qty/100 > 40) return '❌ Trop de lipides pour cette portion ('+Math.round(a.lip*qty/100)+'g). Réduis la quantité.';
+    return '❌ Cette portion est excessive pour ton objectif.';
+  }
+
+  if (feuDyn === 'orange') {
+    if (pctKcal > 30) msgs.push('portion calorique ('+pctKcal+'% de ton objectif)');
+    if (a.feu === 'orange' && qty > 150) msgs.push('aliment à consommer avec modération');
+    return '⚠️ Attention — '+msgs.join(', ')+'. Peut convenir si le reste de la journée est équilibré.';
+  }
+
+  // VERT
+  if (pctProt >= 25) msgs.push('excellente source de protéines (+'+pctProt+'% de ton objectif)');
+  else if (pctProt >= 15) msgs.push('bonne contribution protéines ('+pctProt+'% objectif)');
+  if ((a.fib||0)*qty/100 >= 5) msgs.push('riche en fibres');
+  if (pctKcal <= 15) msgs.push('portion légère ('+pctKcal+'% kcal journalières)');
+
+  var prefix = but==='perte'?'✅ Bon choix pour la perte de poids.':but==='recomp'?'✅ Idéal pour la recomposition.':'✅ Favorable à la prise de muscle.';
+  return prefix + (msgs.length?' '+msgs.join(', ')+'.'  :'');
 }
 
 // ===================== MODE TOGGLE =====================
@@ -1564,21 +1692,54 @@ function confirmAddAliment(){
 // ===================== JOURNAL =====================
 function renderJournal(){
   renderJournalHero();
-  var today=todayKey();var items=journal[today]||[];
-  var totalKcal=0,totalProt=0;
-  items.forEach(function(i){totalKcal+=i.kcal;totalProt+=i.prot;});
+  var today=todayKey(); var items=journal[today]||[];
+  var totalKcal=0,totalProt=0,totalLip=0,totalGluc=0,totalFib=0;
+  items.forEach(function(i){
+    totalKcal+=i.kcal; totalProt+=i.prot||0;
+    totalLip+=i.lip||0; totalGluc+=i.gluc||0; totalFib+=i.fib||0;
+  });
   totalProt=Math.round(totalProt*10)/10;
+  totalLip=Math.round(totalLip*10)/10;
+  totalGluc=Math.round(totalGluc*10)/10;
+  totalFib=Math.round(totalFib*10)/10;
+
   document.getElementById('j-kcal').textContent=totalKcal;
   document.getElementById('j-prot').textContent=totalProt+'g';
   document.getElementById('j-repas').textContent=items.length;
-  var kcalPct=profil?Math.min(100,Math.round(totalKcal/profil.kcal_cible*100)):0;
-  var protPct=profil?Math.min(100,Math.round(totalProt/profil.prot_cible*100)):0;
-  document.getElementById('j-kcal-pct').textContent=profil?(totalKcal+' / '+profil.kcal_cible+' kcal'):'';
-  document.getElementById('j-prot-pct').textContent=profil?(totalProt+'g / '+profil.prot_cible+'g'):'';
-  var pb=document.getElementById('j-pbar-kcal');pb.style.width=kcalPct+'%';pb.className='prog-fill'+(kcalPct>100?' prog-fill-danger':kcalPct>85?' prog-fill-warn':'');
-  var pb2=document.getElementById('j-pbar-prot');pb2.style.width=protPct+'%';
+
+  // Objectifs
+  var kcalCible = profil?profil.kcal_cible:2000;
+  var protCible = profil?profil.prot_cible:150;
+  var lipCible  = Math.round(kcalCible*0.28/9);   // 28% kcal en lipides
+  var glucCible = Math.round(kcalCible*0.45/4);   // 45% kcal en glucides
+  var fibCible  = 30;                              // 30g fibres/jour
+
+  renderJauges([
+    {label:'Calories',     val:totalKcal, cible:kcalCible, unit:'kcal', color:'#1f7a4a', danger:1.1},
+    {label:'Protéines',    val:totalProt, cible:protCible, unit:'g',    color:'#0284c7', danger:1.5},
+    {label:'Lipides',      val:totalLip,  cible:lipCible,  unit:'g',    color:'#d97706', danger:1.2},
+    {label:'Glucides',     val:totalGluc, cible:glucCible, unit:'g',    color:'#7c3aed', danger:1.1},
+    {label:'Fibres',       val:totalFib,  cible:fibCible,  unit:'g',    color:'#059669', danger:2}
+  ]);
+
+  // Bilan global
+  var kcalPct=totalKcal/kcalCible;
+  var protPct=totalProt/protCible;
+  var bilanEl=document.getElementById('jour-bilan-global');
+  if(items.length>0){
+    bilanEl.style.display='block';
+    var msg,bg,col;
+    if(kcalPct>1.1){msg='⚠️ Objectif calorique dépassé — attention à la fin de journée.';bg='#fef2f2';col='#991b1b';}
+    else if(kcalPct>0.9&&protPct>0.85){msg='✅ Excellente journée — objectifs kcal et protéines bien couverts !';bg='#f0fdf4';col='#166534';}
+    else if(protPct<0.5&&kcalPct>0.5){msg='💪 Pense à ajouter une source de protéines — objectif peu couvert.';bg='#eff6ff';col='#1e40af';}
+    else if(kcalPct<0.3){msg='🍽️ Journée peu remplie — encore '+Math.round((1-kcalPct)*kcalCible)+' kcal à consommer.';bg='#fffbeb';col='#92400e';}
+    else{msg='📊 En cours — continue sur cette lancée !';bg='var(--bg)';col='var(--text2)';}
+    bilanEl.style.background=bg; bilanEl.style.color=col; bilanEl.textContent=msg;
+  } else { bilanEl.style.display='none'; }
+
   var list=document.getElementById('jour-items-list');
-  if(!items.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">🍽️</div>Aucun aliment ce jour.<br>Utilise la recherche nutrition !</div>';return;}
+  if(!items.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">\uD83C\uDF7D\uFE0F</div>Aucun aliment ce jour.<br>Utilise la recherche nutrition !</div>';
+    return;}
   var byRepas={};
   items.forEach(function(it,idx){if(!byRepas[it.repas])byRepas[it.repas]=[];byRepas[it.repas].push({item:it,idx:idx});});
   var html='';
@@ -1595,8 +1756,47 @@ function renderJournal(){
   var hist=document.getElementById('jour-history');var days=[];
   for(var i=1;i<=6;i++){var dd=new Date();dd.setDate(dd.getDate()-i);var k=dd.getFullYear()+'-'+(dd.getMonth()+1)+'-'+dd.getDate();if(journal[k])days.push({k:k,d:dd,items:journal[k]});}
   if(!days.length){hist.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:12px;">Aucun historique pour l\'instant.</div>';return;}
-  var js=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-  hist.innerHTML=days.map(function(day){var tkc=0,tp=0;day.items.forEach(function(i){tkc+=i.kcal;tp+=i.prot;});return '<div class="card-sm" style="display:flex;align-items:center;gap:10px;"><div style="width:40px;height:40px;border-radius:50%;background:var(--green-light);border:1px solid var(--green-mid);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-size:10px;font-weight:700;color:var(--green);">'+js[day.d.getDay()]+'</span><span style="font-size:11px;color:var(--green);">'+day.d.getDate()+'</span></div><div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--text);">'+tkc+' kcal</div><div style="font-size:11px;color:var(--text3);">'+day.items.length+' aliments · '+Math.round(tp*10)/10+'g prot</div></div></div>';}).join('');
+  var js2=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  hist.innerHTML=days.map(function(day){
+    var tkc=0,tp=0;day.items.forEach(function(i){tkc+=i.kcal;tp+=i.prot;});
+    var pct=Math.min(100,Math.round(tkc/kcalCible*100));
+    var barColor=pct>105?'#ef4444':pct>80?'#22c55e':'#f97316';
+    return '<div class="card-sm" style="display:flex;align-items:center;gap:10px;">'
+      +'<div style="width:40px;height:40px;border-radius:50%;background:var(--green-light);border:1px solid var(--green-mid);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;">'
+      +'<span style="font-size:10px;font-weight:700;color:var(--green);">'+js2[day.d.getDay()]+'</span>'
+      +'<span style="font-size:11px;color:var(--green);">'+day.d.getDate()+'</span></div>'
+      +'<div style="flex:1;">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text);">'+tkc+' kcal</div>'
+      +'<div style="height:4px;background:var(--border);border-radius:2px;margin:3px 0;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:2px;"></div></div>'
+      +'<div style="font-size:11px;color:var(--text3);">'+pct+'% objectif · '+Math.round(tp*10)/10+'g prot</div>'
+      +'</div></div>';
+  }).join('');
+}
+
+function renderJauges(jauges) {
+  var el = document.getElementById('jour-jauges');
+  if(!el) return;
+  el.innerHTML = jauges.map(function(j) {
+    var pct = Math.round(j.val / j.cible * 100);
+    var fillW = Math.min(pct, 110); // cap visuel à 110%
+    var isOver = pct > j.danger * 100;
+    var isGood = pct >= 80 && pct <= Math.round(j.danger*100);
+    var fillColor = isOver ? '#ef4444' : pct >= 80 ? j.color : '#f97316';
+    var pctLabel = pct + '%';
+    var restant = j.val < j.cible ? Math.round(j.cible - j.val)+j.unit+' restants' : (pct > 100 ? '+'+Math.round(j.val-j.cible)+j.unit : 'Objectif atteint ✓');
+    return '<div class="jauge-row">'
+      +'<div class="jauge-header">'
+      +'<span class="jauge-label">'+j.label+'</span>'
+      +'<span class="jauge-vals">'+j.val+j.unit+' / '+j.cible+j.unit
+      +' <span class="jauge-pct" style="color:'+fillColor+'">'+pctLabel+'</span></span>'
+      +'</div>'
+      +'<div class="jauge-track">'
+      +'<div class="jauge-fill" style="width:'+fillW+'%;background:'+fillColor+';"></div>'
+      +'<div class="jauge-marker" style="left:91%;"></div>'  // marqueur à 91% = 100% objectif visuellement (cap 110%)
+      +'</div>'
+      +'<div style="font-size:10px;color:'+(isOver?'#ef4444':isGood?j.color:'#d97706')+';margin-top:3px;text-align:right;">'+restant+'</div>'
+      +'</div>';
+  }).join('');
 }
 function renderJournalHero(){
   var today=todayKey();var items=journal[today]||[];
