@@ -26,10 +26,10 @@ body{font-family:-apple-system,'SF Pro Text',Arial,sans-serif;background:#f0fdf4
 .page.active{display:block;}
 
 /* HERO BANNER — shared */
-.page-hero{background:linear-gradient(135deg,#1a3d28 0%,#2d6a45 100%);border-radius:18px;padding:16px 18px 14px;margin-bottom:14px;position:relative;overflow:hidden;}
+.page-hero{background:linear-gradient(135deg,#1a3d28 0%,#2d6a45 100%);border-radius:16px;padding:12px 16px 11px;margin-bottom:10px;position:relative;overflow:hidden;}
 .hero-bg-emoji{position:absolute;right:-10px;top:-10px;font-size:80px;opacity:.08;line-height:1;pointer-events:none;}
-.hero-label{font-size:11px;font-weight:700;color:#86efac;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;}
-.hero-title{font-size:19px;font-weight:800;color:#fff;margin-bottom:7px;}
+.hero-label{font-size:10px;font-weight:700;color:#86efac;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px;}
+.hero-title{font-size:17px;font-weight:800;color:#fff;margin-bottom:5px;}
 .hero-pills{display:flex;gap:7px;flex-wrap:wrap;min-height:22px;}
 .hero-pill{background:rgba(255,255,255,.18);color:#fff;font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600;}
 .hero-action-btn{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.15);border:none;border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
@@ -246,14 +246,14 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
 .triset-block .ungroup-btn{color:#d97706;}
 
 /* JAUGES JOURNAL */
-.jauge-row{margin-bottom:10px;}
-.jauge-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
-.jauge-label{font-size:12px;font-weight:600;color:var(--text2);}
-.jauge-vals{font-size:11px;color:var(--text3);}
-.jauge-track{height:10px;background:#f0f0f0;border-radius:5px;overflow:visible;position:relative;}
-.jauge-fill{height:100%;border-radius:5px;transition:width .4s ease;position:relative;}
-.jauge-marker{position:absolute;top:-3px;width:2px;height:16px;background:rgba(0,0,0,.2);border-radius:1px;}
-.jauge-pct{font-size:11px;font-weight:700;margin-left:6px;}
+.jauge-row{margin-bottom:7px;}
+.jauge-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.jauge-label{font-size:11px;font-weight:600;color:var(--text2);}
+.jauge-vals{font-size:10px;color:var(--text3);}
+.jauge-track{height:7px;background:#f0f0f0;border-radius:4px;overflow:visible;position:relative;}
+.jauge-fill{height:100%;border-radius:4px;transition:width .4s ease;position:relative;}
+.jauge-marker{position:absolute;top:-3px;width:2px;height:13px;background:rgba(0,0,0,.2);border-radius:1px;}
+.jauge-pct{font-size:10px;font-weight:700;margin-left:4px;}
 </style>
 </head>
 <body>
@@ -451,29 +451,29 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
     <button onclick="showPage('journal');renderJournal();" class="hero-action-btn" style="font-size:11px;font-weight:700;width:auto;border-radius:10px;padding:0 10px;">Aujourd'hui</button>
   </div>
   <!-- DASHBOARD JAUGES -->
-  <div id="jour-dashboard" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:12px;">
+  <div id="jour-dashboard" style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px 14px;margin-bottom:10px;">
     <!-- LIGNE STATS -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:10px;">
       <div style="text-align:center;">
-        <div style="font-size:22px;font-weight:800;color:var(--green);" id="j-kcal">0</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:1px;">kcal</div>
+        <div style="font-size:18px;font-weight:800;color:var(--green);" id="j-kcal">0</div>
+        <div style="font-size:10px;color:var(--text3);">kcal</div>
       </div>
       <div style="text-align:center;">
-        <div style="font-size:22px;font-weight:800;color:var(--green);" id="j-prot">0g</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:1px;">prot&#233;ines</div>
+        <div style="font-size:18px;font-weight:800;color:var(--green);" id="j-prot">0g</div>
+        <div style="font-size:10px;color:var(--text3);">prot&#233;ines</div>
       </div>
       <div style="text-align:center;">
-        <div style="font-size:22px;font-weight:800;color:var(--green);" id="j-repas">0</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:1px;">aliments</div>
+        <div style="font-size:18px;font-weight:800;color:var(--green);" id="j-repas">0</div>
+        <div style="font-size:10px;color:var(--text3);">aliments</div>
       </div>
     </div>
     <!-- JAUGES -->
     <div id="jour-jauges"></div>
     <!-- BILAN GLOBAL -->
-    <div id="jour-bilan-global" style="margin-top:10px;padding:8px 12px;border-radius:10px;font-size:12px;font-weight:600;text-align:center;display:none;"></div>
+    <div id="jour-bilan-global" style="margin-top:8px;padding:7px 10px;border-radius:9px;font-size:11px;font-weight:600;text-align:center;display:none;"></div>
   </div>
-  <div class="card"><div id="jour-items-list"><div class="empty-state"><div class="empty-icon">&#127869;&#65039;</div>Aucun aliment ce jour.<br>Utilise la recherche nutrition !</div></div></div>
-  <div style="margin-top:16px;"><div class="section-hd">Historique</div><div id="jour-history"></div></div>
+  <div class="card" style="padding:12px;margin-bottom:8px;"><div id="jour-items-list"><div class="empty-state"><div class="empty-icon">&#127869;&#65039;</div>Aucun aliment ce jour.<br>Utilise la recherche nutrition !</div></div></div>
+  <div style="margin-top:10px;"><div class="section-hd">Historique</div><div id="jour-history"></div></div>
 </div>
 
 <!-- PAGE SPORT -->
@@ -1794,7 +1794,7 @@ function renderJauges(jauges) {
       +'<div class="jauge-fill" style="width:'+fillW+'%;background:'+fillColor+';"></div>'
       +'<div class="jauge-marker" style="left:91%;"></div>'  // marqueur à 91% = 100% objectif visuellement (cap 110%)
       +'</div>'
-      +'<div style="font-size:10px;color:'+(isOver?'#ef4444':isGood?j.color:'#d97706')+';margin-top:3px;text-align:right;">'+restant+'</div>'
+      +'<div style="font-size:10px;color:'+(isOver?'#ef4444':isGood?j.color:'#d97706')+';margin-top:2px;text-align:right;">'+restant+'</div>'
       +'</div>';
   }).join('');
 }
