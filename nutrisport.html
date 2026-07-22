@@ -130,6 +130,10 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
 .seg-btn{flex:1;height:38px;border-radius:10px;border:none;background:transparent;color:var(--text3);font-size:14px;font-weight:400;font-family:'Banana Yellow',ui-rounded,-apple-system,sans-serif;cursor:pointer;transition:all .18s;white-space:nowrap;letter-spacing:.02em;}
 .seg-btn.active{background:var(--card2);color:var(--title);font-weight:400;box-shadow:0 2px 8px rgba(0,0,0,.35),inset 0 0 0 1px rgba(225,205,0,.4);}
 
+/* SCAN */
+.scan-btn{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--y-mid);background:var(--y-light);color:var(--title);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .12s;}
+.scan-btn:active{transform:scale(.92);}
+
 /* STEPPERS QUANTITE */
 .step-btn{width:38px;height:38px;border-radius:11px;border:1px solid var(--border);background:var(--card2);color:var(--title);font-size:19px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:transform .12s;}
 .step-btn:active{transform:scale(.9);background:var(--y-light);}
@@ -431,9 +435,12 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
   </div>
   <div id="nutri-mode-aliment">
     <div class="section-hd">Ajouter un aliment</div>
-    <div class="search-row">
-      <span class="search-icon">&#128269;</span>
-      <input type="text" id="nutri-search" placeholder="Ex: riz complet, avocat, &#339;uf&#8230;" oninput="nutriSearch(this.value)" />
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <div style="position:relative;flex:1;">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" id="nutri-search" placeholder="Ex: riz complet, avocat, &#339;uf&#8230;" oninput="nutriSearch(this.value)" style="padding-left:42px;" />
+      </div>
+      <button class="scan-btn" onclick="openScanPage()" aria-label="Scanner un produit"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5v14M8 5v14M11.5 5v9M15 5v14M18 5v9M20.5 5v14"/></svg></button>
     </div>
     <div id="nutri-quick" style="display:none;margin-bottom:10px;">
       <div class="section-hd" style="margin-bottom:6px;">&#9889; Ajouts rapides</div>
@@ -559,6 +566,54 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
     <div id="menu-saved-wrap" style="margin-top:16px;">
       <div class="section-hd">Menus sauvegardés</div>
       <div id="menu-saved-list"></div>
+    </div>
+  </div>
+
+  <!-- PAGE SCAN -->
+  <div id="scan-page" class="subpage" style="display:none;">
+    <div class="subpage-hd">
+      <button class="subpage-back" onclick="closeScanPage()" aria-label="Retour">&#8592;</button>
+      <div class="subpage-title">Scanner un produit</div>
+    </div>
+
+    <div class="card" style="margin-bottom:10px;">
+      <div id="scan-cam-wrap" style="display:none;margin-bottom:10px;">
+        <video id="scan-video" playsinline muted style="width:100%;border-radius:14px;background:#000;max-height:260px;object-fit:cover;"></video>
+      </div>
+      <button class="btn btn-outline" id="scan-cam-btn" onclick="scanCameraToggle()" style="margin-bottom:12px;display:none;">Scanner avec la cam&#233;ra</button>
+      <div id="scan-cam-note" style="font-size:11.5px;color:var(--text3);margin-bottom:12px;line-height:1.5;">Saisis le num&#233;ro imprim&#233; sous le code-barres du produit (8 &#224; 13 chiffres).</div>
+      <label>Num&#233;ro du code-barres</label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="scan-ean" inputmode="numeric" placeholder="Ex&#8239;: 3017620422003" style="flex:1;font-variant-numeric:tabular-nums;letter-spacing:.04em;" onkeydown="if(event.key==='Enter')scanLookup()" />
+        <button class="btn btn-primary" style="width:auto;padding:0 18px;" onclick="scanLookup()">OK</button>
+      </div>
+      <div id="scan-status" style="font-size:12.5px;margin-top:10px;display:none;border-radius:10px;padding:9px 12px;"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:10px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;">Ou photographie le tableau nutritionnel</div>
+      <div style="font-size:11.5px;color:var(--text3);line-height:1.55;margin-bottom:10px;">Touche le champ ci-dessous, puis sur le clavier iPhone appuie sur <b style="color:var(--text2);">Scanner du texte</b> (ic&#244;ne appareil photo) et vise le tableau des valeurs nutritionnelles. Les chiffres se rempliront tout seuls.</div>
+      <textarea id="sp-ocr" placeholder="Le texte du tableau appara&#238;tra ici&#8230;" style="height:96px;resize:none;line-height:1.5;font-size:13px;" oninput="scanParseText(this.value)"></textarea>
+    </div>
+
+    <!-- FICHE PRODUIT MODIFIABLE -->
+    <div id="scan-result" style="display:none;">
+      <div class="section-hd">Informations trouv&#233;es &#8212; modifiables</div>
+      <div class="card">
+        <label>Nom de l'aliment</label>
+        <input type="text" id="sp-nom" style="margin-bottom:10px;" oninput="spPreview()" />
+        <div id="sp-marque" style="font-size:11.5px;color:var(--text3);margin:-4px 0 10px;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><label>kcal / 100 g</label><input type="number" id="sp-kcal" inputmode="decimal" oninput="spPreview()" /></div>
+          <div><label>Prot&#233;ines (g)</label><input type="number" id="sp-prot" inputmode="decimal" oninput="spPreview()" /></div>
+          <div><label>Lipides (g)</label><input type="number" id="sp-lip" inputmode="decimal" oninput="spPreview()" /></div>
+          <div><label>Glucides (g)</label><input type="number" id="sp-gluc" inputmode="decimal" oninput="spPreview()" /></div>
+          <div><label>Fibres (g)</label><input type="number" id="sp-fib" inputmode="decimal" oninput="spPreview()" /></div>
+        </div>
+        <div id="sp-serving" style="font-size:11.5px;color:var(--text3);margin-top:10px;display:none;"></div>
+        <div id="sp-feu" style="font-size:13px;font-weight:700;margin-top:10px;"></div>
+        <button class="btn btn-primary" style="margin-top:14px;" onclick="scanSave()">Enregistrer et ouvrir la fiche</button>
+      </div>
     </div>
   </div>
 
@@ -907,6 +962,14 @@ var ALIMENTS=[
 {n:"Yaourt grec (0%)",kcal:59,prot:10,lip:0.4,gluc:3.6,fib:0,cat:"laitier",feu:"vert"},
 {n:"Yaourt grec (entier)",kcal:97,prot:9,lip:5,gluc:3.6,fib:0,cat:"laitier",feu:"vert"},
 {n:"Yaourt nature (0%)",kcal:44,prot:4.7,lip:0.1,gluc:6,fib:0,cat:"laitier",feu:"vert"},
+{n:"Yaourt de chèvre nature",kcal:70,prot:3.9,lip:4.5,gluc:3.7,fib:0,cat:"laitier",feu:"vert"},
+{n:"Yaourt de brebis nature",kcal:90,prot:4.5,lip:6,gluc:4.3,fib:0,cat:"laitier",feu:"vert"},
+{n:"Lait de chèvre",kcal:66,prot:3.4,lip:3.9,gluc:4.4,fib:0,cat:"laitier",feu:"vert"},
+{n:"Fromage de chèvre frais",kcal:205,prot:9,lip:18,gluc:2.5,fib:0,cat:"laitier",feu:"orange"},
+{n:"Compote de pomme sans sucres ajoutés",kcal:45,prot:0.3,lip:0.2,gluc:10,fib:1.7,cat:"fruit",feu:"vert"},
+{n:"Compote pomme-poire sans sucres ajoutés",kcal:47,prot:0.3,lip:0.2,gluc:10.5,fib:1.8,cat:"fruit",feu:"vert"},
+{n:"Compote pomme-banane sans sucres ajoutés",kcal:55,prot:0.4,lip:0.2,gluc:12,fib:1.6,cat:"fruit",feu:"vert"},
+{n:"Compote pomme-fraise sans sucres ajoutés",kcal:48,prot:0.4,lip:0.2,gluc:10.4,fib:1.7,cat:"fruit",feu:"vert"},
 {n:"Yaourt nature (entier)",kcal:61,prot:3.5,lip:3.1,gluc:4.9,fib:0,cat:"laitier",feu:"vert"},
 {n:"Yaourt au soja nature",kcal:62,prot:3.8,lip:2.6,gluc:5,fib:0.2,cat:"laitier",feu:"vert"},
 {n:"Fromage blanc 0%",kcal:45,prot:8,lip:0.1,gluc:3.5,fib:0,cat:"laitier",feu:"vert"},
@@ -1998,7 +2061,7 @@ function deleteRecette(i){recettes.splice(i,1);localStorage.setItem('ns_recettes
 // ===================== ADD ALIMENT MODAL =====================
 function openAddAliment(){
   if(!currentAliment) return;
-  var qty=+(document.getElementById('nutri-qty-input')?document.getElementById('nutri-qty-input').value:100)||100;
+  var qty=Math.round(currentQty)||100; // toujours en grammes, meme en mode portion
   document.getElementById('maa-title').textContent=currentAliment.n;
   document.getElementById('maa-qty').value=qty;maaUpdate();showModal('modal-add-aliment');
 }
@@ -2926,6 +2989,195 @@ function deleteMenuSaved(i) {
   renderMenuSaved();
 }
 
+
+// ===================== SCANNER PRODUIT =====================
+var scanStream=null, scanTimer=null, scanDetector=null;
+
+function openScanPage(){
+  var p=document.getElementById('scan-page');
+  p.style.display='block'; p.scrollTop=0;
+  document.getElementById('scan-result').style.display='none';
+  scanStatus('');
+  // Camera dispo uniquement si le navigateur sait decoder les codes-barres
+  var camBtn=document.getElementById('scan-cam-btn');
+  var note=document.getElementById('scan-cam-note');
+  if(typeof window!=='undefined' && 'BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+    camBtn.style.display='block';
+    note.textContent='Scanne avec la cam\u00e9ra, ou saisis le num\u00e9ro sous le code-barres.';
+  } else {
+    camBtn.style.display='none';
+  }
+  setTimeout(function(){var e=document.getElementById('scan-ean');if(e)e.focus();},250);
+}
+function closeScanPage(){
+  scanCameraStop();
+  document.getElementById('scan-page').style.display='none';
+}
+function scanStatus(msg,type){
+  var el=document.getElementById('scan-status'); if(!el) return;
+  if(!msg){el.style.display='none';return;}
+  el.style.display='block'; el.textContent=msg;
+  var styles={load:['rgba(96,165,250,.12)','#93C5FD'],err:['rgba(248,113,113,.12)','#FCA5A5'],ok:['rgba(53,208,143,.12)','#7FE7BC']};
+  var s=styles[type||'load'];
+  el.style.background=s[0]; el.style.color=s[1];
+}
+
+// --- Camera (Chrome/Android ; sur iPhone Safari, saisie manuelle) ---
+function scanCameraToggle(){ if(scanStream){scanCameraStop();}else{scanCameraStart();} }
+function scanCameraStart(){
+  try{ scanDetector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e']}); }
+  catch(e){ scanStatus('Cam\u00e9ra non compatible sur cet appareil \u2014 saisis le num\u00e9ro.','err'); return; }
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(function(stream){
+    scanStream=stream;
+    var v=document.getElementById('scan-video');
+    document.getElementById('scan-cam-wrap').style.display='block';
+    document.getElementById('scan-cam-btn').textContent='Arr\u00eater la cam\u00e9ra';
+    v.srcObject=stream; v.play();
+    scanTimer=setInterval(function(){
+      scanDetector.detect(v).then(function(codes){
+        if(codes && codes.length){
+          var ean=codes[0].rawValue;
+          document.getElementById('scan-ean').value=ean;
+          scanCameraStop();
+          scanLookup();
+        }
+      }).catch(function(){});
+    },350);
+  }).catch(function(){ scanStatus('Acc\u00e8s cam\u00e9ra refus\u00e9 \u2014 saisis le num\u00e9ro.','err'); });
+}
+function scanCameraStop(){
+  if(scanTimer){clearInterval(scanTimer);scanTimer=null;}
+  if(scanStream){scanStream.getTracks().forEach(function(t){t.stop();});scanStream=null;}
+  var w=document.getElementById('scan-cam-wrap'); if(w) w.style.display='none';
+  var b=document.getElementById('scan-cam-btn'); if(b) b.textContent='Scanner avec la cam\u00e9ra';
+}
+
+// --- Recherche Open Food Facts ---
+function scanLookup(){
+  var ean=(document.getElementById('scan-ean').value||'').replace(/\D/g,'');
+  if(ean.length<8||ean.length>13){scanStatus('Num\u00e9ro invalide \u2014 8 \u00e0 13 chiffres attendus.','err');return;}
+  document.getElementById('scan-ean').value=ean;
+  document.getElementById('scan-result').style.display='none';
+  scanStatus('Recherche du produit\u2026','load');
+  var ctrl=new AbortController();
+  var to=setTimeout(function(){ctrl.abort();},10000);
+  fetch('https://world.openfoodfacts.org/api/v2/product/'+ean+'.json?fields=product_name,product_name_fr,brands,nutriments,serving_size',{signal:ctrl.signal})
+    .then(function(r){clearTimeout(to);if(!r.ok)throw new Error('http');return r.json();})
+    .then(function(data){
+      if(!data||data.status!==1||!data.product){scanStatus('Produit introuvable dans Open Food Facts. V\u00e9rifie le num\u00e9ro, ou cr\u00e9e-le via \u00ab Cr\u00e9er un aliment personnalis\u00e9 \u00bb.','err');return;}
+      scanFill(data.product,ean);
+    })
+    .catch(function(){clearTimeout(to);scanStatus('Connexion impossible \u2014 v\u00e9rifie ton r\u00e9seau et r\u00e9essaie.','err');});
+}
+// Parse le texte Live Text d'un tableau nutritionnel francais
+function scanParseText(txt){
+  if(!txt||txt.trim().length<8) return;
+  var t=txt.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  function grab(keys, opts){
+    opts=opts||{};
+    var lines=t.split(/\n/);
+    for(var i=0;i<lines.length;i++){
+      for(var kI=0;kI<keys.length;kI++){
+        var idx=lines[i].indexOf(keys[kI]);
+        if(idx>=0){
+          if(opts.skipDont && /dont/.test(lines[i].slice(0,idx))) continue;
+          // nombre apres le mot-cle sur la meme ligne, sinon ligne suivante
+          var seg=lines[i].slice(idx+keys[kI].length)+' '+(lines[i+1]||'');
+          if(opts.unit==='kcal'){
+            var mk=seg.match(/(\d+(?:[.,]\d+)?)\s*k?cal/);
+            if(mk) return parseFloat(mk[1].replace(',','.'));
+          }
+          var m=seg.match(/(\d+(?:[.,]\d+)?)/);
+          if(m) return parseFloat(m[1].replace(',','.'));
+        }
+      }
+    }
+    return null;
+  }
+  // Energie : privilegier la valeur en kcal (tableaux : "2252 kJ / 539 kcal")
+  var kcal=grab(['energie','energy','valeur energetique'],{unit:'kcal'});
+  if(kcal===null){ var mk2=t.match(/(\d+(?:[.,]\d+)?)\s*kcal/); if(mk2) kcal=parseFloat(mk2[1].replace(',','.')); }
+  var lip =grab(['matieres grasses','matiere grasse','lipides','graisses'],{skipDont:true});
+  var gluc=grab(['glucides'],{skipDont:true});
+  var prot=grab(['proteines','protein']);
+  var fib =grab(['fibres alimentaires','fibres','fibre']);
+  var found=0;
+  function setIf(id,v,round0){
+    if(v===null||isNaN(v)) return;
+    document.getElementById(id).value=round0?Math.round(v):Math.round(v*10)/10;
+    found++;
+  }
+  setIf('sp-kcal',kcal,true);
+  setIf('sp-prot',prot);
+  setIf('sp-lip',lip);
+  setIf('sp-gluc',gluc);
+  setIf('sp-fib',fib);
+  if(found>=2){
+    document.getElementById('scan-result').style.display='block';
+    spPreview();
+    scanStatus('Tableau reconnu \u2713 '+found+' valeur'+(found>1?'s':'')+' extraite'+(found>1?'s':'')+' \u2014 donne un nom au produit et v\u00e9rifie.','ok');
+    var nomEl=document.getElementById('sp-nom');
+    if(!nomEl.value) setTimeout(function(){nomEl.focus();},200);
+  } else if(found>0){
+    document.getElementById('scan-result').style.display='block';
+    spPreview();
+    scanStatus('Lecture partielle \u2014 compl\u00e8te les valeurs manquantes.','err');
+  }
+}
+
+function num1(v){ if(v===undefined||v===null||isNaN(+v)) return ''; return Math.round(+v*10)/10; }
+function scanFill(p,ean){
+  var n=p.nutriments||{};
+  var kcal=n['energy-kcal_100g'];
+  if(kcal===undefined && n['energy_100g']!==undefined) kcal=+n['energy_100g']/4.184; // kJ -> kcal
+  var nom=p.product_name_fr||p.product_name||'';
+  document.getElementById('sp-nom').value=nom;
+  document.getElementById('sp-marque').textContent=(p.brands?('Marque : '+p.brands+' \u00b7 '):'')+'EAN '+ean;
+  document.getElementById('sp-kcal').value=kcal!==undefined?Math.round(+kcal):'';
+  document.getElementById('sp-prot').value=num1(n['proteins_100g']);
+  document.getElementById('sp-lip').value =num1(n['fat_100g']);
+  document.getElementById('sp-gluc').value=num1(n['carbohydrates_100g']);
+  document.getElementById('sp-fib').value =num1(n['fiber_100g']);
+  var sv=document.getElementById('sp-serving');
+  if(p.serving_size){sv.style.display='block';sv.textContent='Portion indiqu\u00e9e sur l\'emballage : '+p.serving_size;}
+  else sv.style.display='none';
+  var missing=!kcal&&!n['proteins_100g'];
+  scanStatus(missing?'Produit trouv\u00e9 mais valeurs incompl\u00e8tes \u2014 compl\u00e8te-les avant d\'enregistrer.':'Produit trouv\u00e9 \u2713 V\u00e9rifie et ajuste si besoin.', missing?'err':'ok');
+  document.getElementById('scan-result').style.display='block';
+  spPreview();
+}
+function spPreview(){
+  var kcal=+document.getElementById('sp-kcal').value||0;
+  var prot=+document.getElementById('sp-prot').value||0;
+  var lip =+document.getElementById('sp-lip').value||0;
+  var gluc=+document.getElementById('sp-gluc').value||0;
+  var feu=caCalcFeu(kcal,prot,lip,gluc);
+  var col=feu==='vert'?'#35D08F':feu==='orange'?'#F5A524':'#F87171';
+  var lbl=feu==='vert'?'\uD83D\uDFE2 Feu vert':feu==='orange'?'\uD83D\uDFE0 Feu orange':'\uD83D\uDD34 Feu rouge';
+  document.getElementById('sp-feu').innerHTML='<span style="color:'+col+';">'+lbl+' \u2014 attribu\u00e9 automatiquement</span>';
+}
+function scanSave(){
+  var nom=(document.getElementById('sp-nom').value||'').trim();
+  var kcal=+document.getElementById('sp-kcal').value||0;
+  var prot=+document.getElementById('sp-prot').value||0;
+  var lip =+document.getElementById('sp-lip').value||0;
+  var gluc=+document.getElementById('sp-gluc').value||0;
+  var fib =+document.getElementById('sp-fib').value||0;
+  if(!nom){toast('Entre un nom pour ce produit');return;}
+  if(!kcal&&!prot){toast('Renseigne au moins les calories');return;}
+  var base=nom, i=2;
+  while(ALIMENTS.find(function(a){return a.n===nom;})){nom=base+' ('+i+')';i++;}
+  var feu=caCalcFeu(kcal,prot,lip,gluc);
+  var aliment={n:nom,kcal:kcal,prot:prot,lip:lip,gluc:gluc,fib:fib,cat:'scan',feu:feu,custom:true};
+  customAliments.push(aliment);
+  ALIMENTS.push(aliment);
+  localStorage.setItem('ns_custom_aliments',JSON.stringify(customAliments));
+  renderCustomAliments();
+  closeScanPage();
+  toast(nom+' enregistr\u00e9 \u2705');
+  document.getElementById('nutri-search').value=nom;
+  selectAliment(nom);
+}
 
 // ===================== ALIMENTS PERSONNALISÉS =====================
 var customAliments = JSON.parse(localStorage.getItem('ns_custom_aliments')||'[]');
