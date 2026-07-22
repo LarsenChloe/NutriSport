@@ -1534,13 +1534,43 @@ var EXERCICES=[
 ];
 
 // ===================== STATE =====================
-var profil=JSON.parse(localStorage.getItem('ns_profil')||'null');
-var journal=JSON.parse(localStorage.getItem('ns_journal')||'{}');
-var programme=JSON.parse(localStorage.getItem('ns_programme')||'[]');
-var seancesHist=JSON.parse(localStorage.getItem('ns_seances')||'[]');
-var recettes=JSON.parse(localStorage.getItem('ns_recettes')||'[]');
-var eau=JSON.parse(localStorage.getItem('ns_eau')||'{}');
-var poids=JSON.parse(localStorage.getItem('ns_poids')||'[]');
+// ===================== PERSISTANCE & MIGRATIONS =====================
+// Regle d'or : les cles ns_* ne sont JAMAIS renommees ni ecrasees par une maj.
+// Toute evolution du format passe par une migration ci-dessous.
+
+// Chargement blinde : une valeur corrompue ne reinitialise rien,
+// elle est mise de cote (ns_corrupt_*) et l'app demarre sur le fallback.
+function safeLoad(key, fallback){
+  var raw=localStorage.getItem(key);
+  if(raw===null) return fallback;
+  try{ var v=JSON.parse(raw); return v===null&&fallback!==null?fallback:v; }
+  catch(e){
+    try{ localStorage.setItem('ns_corrupt_'+key+'_'+Date.now(), raw); }catch(e2){}
+    return fallback;
+  }
+}
+
+var DATA_VERSION=1;
+function migrateData(){
+  var v=parseInt(localStorage.getItem('ns_version')||'0',10)||0;
+  if(v>=DATA_VERSION) return;
+  // v0 -> v1 : premiere version versionnee, rien a transformer.
+  // Exemple pour plus tard :
+  // if(v<2){ /* transformer les anciennes donnees ici, sans jamais les supprimer */ }
+  localStorage.setItem('ns_version', String(DATA_VERSION));
+}
+migrateData();
+
+// Demande au navigateur de proteger le stockage contre la purge automatique (iOS)
+try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+
+var profil=safeLoad('ns_profil', null);
+var journal=safeLoad('ns_journal', {});
+var programme=safeLoad('ns_programme', []);
+var seancesHist=safeLoad('ns_seances', []);
+var recettes=safeLoad('ns_recettes', []);
+var eau=safeLoad('ns_eau', {});
+var poids=safeLoad('ns_poids', []);
 var currentAliment=null;
 var qtyUnit='g';
 var currentQty=100;
@@ -1616,6 +1646,7 @@ function initApp(){
   }
   renderQuickAdds();
   renderEauTile();
+  exportNudge();
   // Journal hero date
   var jh=document.getElementById('jour-date-hd'); if(jh) jh.textContent=dateStr;
   renderJournal();
@@ -2412,6 +2443,19 @@ function renderQuickAdds(){
 }
 
 // ===================== EXPORT / IMPORT =====================
+function exportNudge(){
+  try{
+    var hasData=Object.keys(journal).length>0||poids.length>0;
+    if(!hasData) return;
+    var last=parseInt(localStorage.getItem('ns_last_export')||'0',10);
+    var lastNudge=parseInt(localStorage.getItem('ns_last_nudge')||'0',10);
+    var now=Date.now(), J=86400000;
+    if(now-last>30*J && now-lastNudge>7*J){
+      localStorage.setItem('ns_last_nudge', String(now));
+      setTimeout(function(){toast('\uD83D\uDCBE Pense \u00e0 exporter ta sauvegarde (profil > Exporter)');},1500);
+    }
+  }catch(e){}
+}
 function exportData(){
   var keys=['ns_profil','ns_journal','ns_programme','ns_seances','ns_recettes','ns_menus','ns_custom_aliments','ns_eau','ns_poids'];
   var out={_app:'NutriSport',_date:new Date().toISOString()};
@@ -2422,6 +2466,7 @@ function exportData(){
   a.href=url;a.download='nutrisport-sauvegarde-'+todayKey()+'.json';
   document.body.appendChild(a);a.click();
   setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},500);
+  localStorage.setItem('ns_last_export', String(Date.now()));
   toast('Sauvegarde export\u00e9e \uD83D\uDCE5');
 }
 function importData(input){
@@ -2715,7 +2760,7 @@ function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.c
 var menuIngredients = [];   // aliments disponibles
 var menuObjectif = 'auto';  // auto / deficit / equilibre / surplus
 var lastMenu = null;        // dernier menu généré
-var menusaved = JSON.parse(localStorage.getItem('ns_menus')||'[]');
+var menusaved = safeLoad('ns_menus', []);
 
 var REPAS_DEF = [
   {id:'pdj',  label:'Petit-déjeuner', emoji:'🌅', pctKcal:0.25},
@@ -3170,7 +3215,7 @@ function scanSave(){
 }
 
 // ===================== ALIMENTS PERSONNALISÉS =====================
-var customAliments = JSON.parse(localStorage.getItem('ns_custom_aliments')||'[]');
+var customAliments = safeLoad('ns_custom_aliments', []);
 
 // Merge custom aliments into ALIMENTS at runtime
 function mergeCustomAliments() {
