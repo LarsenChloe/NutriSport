@@ -3163,7 +3163,7 @@ function scanLookup(){
   scanStatus('Recherche du produit\u2026','load');
   var ctrl=new AbortController();
   var to=setTimeout(function(){ctrl.abort();},10000);
-  fetch('https://world.openfoodfacts.org/api/v2/product/'+ean+'.json?fields=product_name,product_name_fr,brands,nutriments,serving_size',{signal:ctrl.signal})
+  fetch('https://world.openfoodfacts.org/api/v2/product/'+ean+'.json?fields=product_name,product_name_fr,product_name_nl,product_name_en,generic_name_fr,generic_name_nl,brands,nutriments,serving_size',{signal:ctrl.signal})
     .then(function(r){clearTimeout(to);if(!r.ok)throw new Error('http');return r.json();})
     .then(function(data){
       if(!data||data.status!==1||!data.product){scanStatus('Produit introuvable dans Open Food Facts. V\u00e9rifie le num\u00e9ro, ou cr\u00e9e-le via \u00ab Cr\u00e9er un aliment personnalis\u00e9 \u00bb.','err');return;}
@@ -3176,7 +3176,7 @@ function scanFill(p,ean){
   var n=p.nutriments||{};
   var kcal=n['energy-kcal_100g'];
   if(kcal===undefined && n['energy_100g']!==undefined) kcal=+n['energy_100g']/4.184; // kJ -> kcal
-  var nom=p.product_name_fr||p.product_name||'';
+  var nom=(p.product_name_fr||p.product_name_nl||p.product_name||p.generic_name_fr||p.generic_name_nl||p.product_name_en||'').trim();
   document.getElementById('sp-nom').value=nom;
   document.getElementById('sp-marque').textContent=(p.brands?('Marque : '+p.brands+' \u00b7 '):'')+'EAN '+ean;
   document.getElementById('sp-kcal').value=kcal!==undefined?Math.round(+kcal):'';
