@@ -533,9 +533,9 @@ input.wset-in::placeholder{color:var(--text3);font-weight:400;font-size:12px;}
 .jauge-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
 .jauge-label{font-size:11px;font-weight:600;color:var(--text2);}
 .jauge-vals{font-size:10px;color:var(--text3);}
-.jauge-track{height:7px;background:var(--card2);border-radius:4px;overflow:visible;position:relative;}
+.jauge-track{height:7px;background:var(--card2);border-radius:4px;overflow:hidden;position:relative;}
 .jauge-fill{height:100%;border-radius:4px;transition:width .4s ease;position:relative;}
-.jauge-marker{position:absolute;top:-3px;width:2px;height:13px;background:rgba(255,255,255,.28);border-radius:1px;}
+.jauge-marker{position:absolute;top:0;width:2px;height:100%;background:rgba(255,255,255,.45);border-radius:1px;}
 .jauge-pct{font-size:10px;font-weight:700;margin-left:4px;}
 </style>
 </head>
@@ -2517,7 +2517,8 @@ function renderJauges(jauges) {
   if(!el) return;
   el.innerHTML = jauges.map(function(j) {
     var pct = Math.round(j.val / j.cible * 100);
-    var fillW = Math.min(pct, 110); // cap visuel à 110%
+    // L'echelle de la piste va de 0 a 110 % : 100 % d'objectif = le repere a 91 %
+    var fillW = Math.min(pct, 110) / 110 * 100;
     var isOver = pct > j.danger * 100;
     var isGood = pct >= 80 && pct <= Math.round(j.danger*100);
     var fillColor = isOver ? '#F87171' : pct >= 80 ? j.color : '#F5A524';
@@ -2530,7 +2531,7 @@ function renderJauges(jauges) {
       +' <span class="jauge-pct" style="color:'+fillColor+'">'+pctLabel+'</span></span>'
       +'</div>'
       +'<div class="jauge-track">'
-      +'<div class="jauge-fill" style="width:'+fillW+'%;background:'+fillColor+';"></div>'
+      +'<div class="jauge-fill" style="width:'+fillW.toFixed(1)+'%;background:'+fillColor+';"></div>'
       +'<div class="jauge-marker" style="left:91%;"></div>'  // marqueur à 91% = 100% objectif visuellement (cap 110%)
       +'</div>'
       +'<div style="font-size:10px;color:'+(isOver?'#F87171':isGood?j.color:'#d97706')+';margin-top:2px;text-align:right;">'+restant+'</div>'
