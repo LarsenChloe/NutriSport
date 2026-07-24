@@ -177,6 +177,12 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
 .routine-nom{font-size:14px;font-weight:700;color:var(--text);line-height:1.25;}
 .routine-sub{font-size:10.5px;color:var(--text3);margin-top:2px;}
 .routine-del{background:none;border:none;font-size:15px;color:var(--text3);cursor:pointer;padding:0 2px;flex-shrink:0;opacity:.5;}
+.routine-edit{background:var(--card2);border:1px solid var(--border);color:var(--title);border-radius:9px;width:30px;height:30px;font-size:13px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.routine-edit:active{transform:scale(.92);background:var(--y-light);}
+.routine-go{font-size:10px;color:var(--text3);margin-top:8px;font-weight:700;letter-spacing:.02em;}
+.sd-resume{background:var(--card2);border-radius:12px;padding:10px 12px;margin-bottom:14px;}
+.sd-stats{font-size:12px;font-weight:700;color:var(--title);}
+.sd-exos{font-size:10.5px;color:var(--text3);margin-top:4px;line-height:1.5;}
 .routine-exos{font-size:11px;color:var(--text2);margin-top:7px;line-height:1.5;}
 
 /* EDITEUR DE ROUTINE */
@@ -193,6 +199,10 @@ label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bot
 .mode-btn{background:transparent;border:none;color:var(--text3);font-size:9.5px;font-weight:700;font-family:inherit;padding:4px 8px;border-radius:6px;cursor:pointer;white-space:nowrap;}
 .mode-btn.on{background:var(--y-grad);color:var(--on-y);}
 .wset.temps{grid-template-columns:22px minmax(0,1fr) 147px 24px;}
+.wset.pdc{grid-template-columns:22px minmax(0,1fr) 38px 56px 62px 24px;}
+.wset-pdc{font-size:10px;font-weight:800;color:var(--title);text-align:center;letter-spacing:.03em;}
+input.wset-in.wset-lest{width:100%;font-size:12.5px;}
+.mode-btn{padding:4px 7px;}
 input.wset-in.wset-wide{width:100%;}
 
 /* SUPERSETS */
@@ -821,6 +831,7 @@ input.wset-in::placeholder{color:var(--text3);font-weight:400;font-size:12px;}
       <span class="done-lbl">min</span>
     </div>
     <button class="btn btn-primary" style="margin-top:10px;" onclick="markDoneToday()">&#10003;&nbsp; Enregistrer comme effectu&#233;e aujourd'hui</button>
+    <button class="btn btn-outline" style="margin-top:8px;color:#F87171;border-color:rgba(248,113,113,.4);" onclick="deleteFromEditor()">Supprimer cette s&#233;ance</button>
     <div style="height:60px;"></div>
   </div>
 
@@ -970,6 +981,22 @@ input.wset-in::placeholder{color:var(--text3);font-weight:400;font-size:12px;}
 </div>
 
 <!-- MODAL AJOUTER ALIMENT -->
+<div class="modal-overlay hidden" id="modal-seance-done">
+  <div class="modal">
+    <div class="modal-title" id="sd-title">Seance faite <button class="modal-close" onclick="hideModal('modal-seance-done')">&#10005;</button></div>
+    <div id="sd-resume" class="sd-resume"></div>
+    <label>Dur&#233;e de la s&#233;ance</label>
+    <div class="done-row" style="margin-top:0;">
+      <input type="number" id="sd-duree" inputmode="numeric" min="1" max="360" value="45" />
+      <span class="done-lbl">minutes</span>
+      <span style="flex:1;"></span>
+      <span class="done-lbl" id="sd-kcal"></span>
+    </div>
+    <button class="btn btn-primary" style="margin-top:14px;" onclick="confirmSeanceDone()">&#10003;&nbsp; J'ai fait cette s&#233;ance</button>
+    <button class="btn btn-outline" style="margin-top:8px;" onclick="hideModal('modal-seance-done');editRoutineAt(sdIndex)">Modifier la s&#233;ance</button>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="modal-add-aliment">
   <div class="modal">
     <div class="modal-title" id="maa-title">Ajouter au journal <button class="modal-close" onclick="hideModal('modal-add-aliment')">&#10005;</button></div>
@@ -3015,19 +3042,24 @@ function repsMoy(r){
   return s?+s[1]:0;
 }
 // 'poids' = kg x reps ; 'temps' = duree en secondes (gainage, isometrie, cardio)
+// 'poids' = kg x reps | 'pdc' = poids du corps x reps (+ lest facultatif)
+// 'temps' = duree en secondes | 'min' = duree en minutes
 function modeDefaut(nom){
   var e=EXERCICES.find(function(x){return x.n===nom;});
   var n=String(nom).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   if(/gainage|planche|plank|hollow|l-sit|wall sit|chaise|suspension|hold|isometr|superman|copenhagen|dead hang/.test(n)) return 'temps';
   if(e){
-    if(e.type==='cardio'||e.type==='mob') return 'temps';
-    if(/\d+\s*s\b/.test(e.desc||'')) return 'temps';   // description du type "3x45 s"
+    if(e.type==='cardio') return 'min';                // 20 min de rameur, pas 1200 s
+    if(e.type==='mob')    return 'temps';
+    if(/\d+\s*s\b/.test(e.desc||'')) return 'temps';
+    if(exoEq(e)==='pdc')  return 'pdc';                // pompes, tractions, dips...
   }
   return 'poids';
 }
+function estTemps(m){ return m==='temps'||m==='min'; }
 function secDefaut(nom){
   var e=EXERCICES.find(function(x){return x.n===nom;});
-  if(e&&e.type==='cardio') return 600;
+  if(e&&e.type==='cardio') return 1200;   // 20 min
   if(e&&e.type==='mob') return 30;
   var m=e&&(e.desc||'').match(/(\d+)\s*s\b/);
   return m?+m[1]:40;
@@ -3062,16 +3094,66 @@ function renderRoutines(){
     var uniq=noms.filter(function(n,k){return noms.indexOf(n)===k;});
     var apercu=uniq.slice(0,4).join(' \u00b7 ')+(uniq.length>4?' \u00b7 +'+(uniq.length-4):'');
     var nb=derniereFois(r.nom);
-    return '<div class="routine-card" onclick="editRoutineAt('+i+')">'
+    var exos=routineExos(r);
+    var series=0; exos.forEach(function(e){ series+=(e.sets||[]).length; });
+    return '<div class="routine-card" onclick="openSeanceDone('+i+')">'
       +'<div class="routine-hd">'
-      +'<div style="flex:1;"><div class="routine-nom">'+r.nom+'</div>'
-      +'<div class="routine-sub">'+uniq.length+' exercice'+(uniq.length>1?'s':'')+(nb?' \u00b7 '+nb:'')+'</div></div>'
-      +'<button class="routine-del" onclick="event.stopPropagation();deleteSeance('+i+')" aria-label="Supprimer">&#10005;</button>'
+      +'<div style="flex:1;min-width:0;"><div class="routine-nom">'+r.nom+'</div>'
+      +'<div class="routine-sub">'+uniq.length+' exercice'+(uniq.length>1?'s':'')+' \u00b7 '+series+' s\u00e9rie'+(series>1?'s':'')+(nb?' \u00b7 '+nb:'')+'</div></div>'
+      +'<button class="routine-edit" onclick="event.stopPropagation();editRoutineAt('+i+')" aria-label="Modifier la s\u00e9ance">&#9998;</button>'
       +'</div>'
       +'<div class="routine-exos">'+apercu+'</div>'
+      +'<div class="routine-go">Toucher pour enregistrer comme faite &#8594;</div>'
       +'</div>';
   }).join('');
 }
+var sdIndex=-1;
+function openSeanceDone(i){
+  var r=seancesHist[i]; if(!r) return;
+  sdIndex=i;
+  var exos=routineExos(r);
+  var series=0, tonnage=seanceTonnage(exos);
+  exos.forEach(function(e){ series+=(e.sets||[]).length; });
+  document.getElementById('sd-title').innerHTML=r.nom+' <button class="modal-close" onclick="hideModal(\'modal-seance-done\')">\u2715</button>';
+  var noms=exos.map(function(e){return e.nom;});
+  document.getElementById('sd-resume').innerHTML=
+    '<div class="sd-stats">'+exos.length+' exercice'+(exos.length>1?'s':'')+' \u00b7 '+series+' s\u00e9ries'+(tonnage?' \u00b7 '+tonnage+' kg':'')+'</div>'
+    +'<div class="sd-exos">'+noms.join(' \u00b7 ')+'</div>';
+  var d=document.getElementById('sd-duree');
+  d.value=estimSeanceMin(exos);
+  d.oninput=sdMajKcal;
+  sdMajKcal();
+  showModal('modal-seance-done');
+}
+function sdMajKcal(){
+  var r=seancesHist[sdIndex]; if(!r) return;
+  var min=Math.max(1, parseInt(document.getElementById('sd-duree').value,10)||1);
+  var exos=routineExos(r);
+  var k=workoutKcal({duree:min*60, exos:exos.map(function(e){return {nom:e.nom, sets:e.sets};})});
+  var el=document.getElementById('sd-kcal');
+  if(el) el.innerHTML='\uD83D\uDD25 <strong style="color:#F5A524;">'+k+' kcal</strong>';
+}
+function confirmSeanceDone(){
+  var r=seancesHist[sdIndex]; if(!r) return;
+  var min=Math.max(1, parseInt(document.getElementById('sd-duree').value,10)||1);
+  var exos=routineExos(r);
+  var series=0;
+  var exosLog=exos.map(function(e){
+    series+=(e.sets||[]).length;
+    return {nom:e.nom, repos:e.repos, mode:e.mode||'poids', sets:(e.sets||[]).map(function(s){
+      return {charge:+s.charge||0, reps:s.reps||'', sec:+s.sec||0, pdc:!!s.pdc, done:true};
+    })};
+  });
+  var w={nom:r.nom, ts:Date.now(), duree:min*60, series:series, tonnage:seanceTonnage(exos), exos:exosLog};
+  w.kcal=workoutKcal(w);
+  workouts.unshift(w);
+  if(workouts.length>400) workouts=workouts.slice(0,400);
+  localStorage.setItem('ns_workouts', JSON.stringify(workouts));
+  hideModal('modal-seance-done');
+  renderRoutines(); renderSportHist(); renderJournal(); renderHero();
+  toast('S\u00e9ance enregistr\u00e9e \u2705 '+series+' s\u00e9ries \u00b7 '+w.kcal+' kcal');
+}
+
 function deleteSeance(i){
   seancesHist.splice(i,1);
   localStorage.setItem('ns_seances',JSON.stringify(seancesHist));
@@ -3219,7 +3301,7 @@ function routineExos(r){
     if(e.sets && e.sets.length){
       return {nom:e.nom, repos:(e.repos!==undefined?+e.repos:reposDefaut(e.nom)), ss:+e.ss||undefined,
               mode:e.mode||modeDefaut(e.nom),
-              sets:e.sets.map(function(s){return {charge:+s.charge||0, reps:s.reps||'', sec:+s.sec||0};})};
+              sets:e.sets.map(function(s){return {charge:+s.charge||0, reps:s.reps||'', sec:+s.sec||0, pdc:!!s.pdc};})};
     }
     var nb=Math.max(1, parseInt(e.series,10)||1), sets=[];
     for(var i=0;i<nb;i++) sets.push({charge:+e.charge||0, reps:(e.reps!==undefined?e.reps:''), sec:secDefaut(e.nom)});
@@ -3306,13 +3388,22 @@ function renderRoutineEditor(){
   el.innerHTML=editRoutine.exos.map(function(e,ei){
     var dansSS = e.ss && (estLie(ei) || estLie(ei-1));
     var col = dansSS ? ssColor(ssIndex(e.ss)) : 'transparent';
-    var enTemps=(e.mode==='temps');
+    var mode=e.mode||'poids';
+    var enTemps=estTemps(mode), enMin=(mode==='min'), enPdc=(mode==='pdc');
     var rows=e.sets.map(function(s,si){
-      var champs = enTemps
-        ? '<input class="wset-in wset-wide" type="number" inputmode="numeric" min="0" placeholder="secondes" value="'+(s.sec?s.sec:'')+'" oninput="rSet('+ei+','+si+',\'sec\',this.value)" />'
-        : '<input class="wset-in" type="number" inputmode="decimal" min="0" placeholder="kg" value="'+(s.charge?s.charge:'')+'" oninput="rSet('+ei+','+si+',\'charge\',this.value)" />'
+      var champs;
+      if(enTemps){
+        var val = enMin ? (s.sec?Math.round(s.sec/60*10)/10:'') : (s.sec||'');
+        champs='<input class="wset-in wset-wide" type="number" inputmode="decimal" min="0" step="'+(enMin?'0.5':'5')+'" placeholder="'+(enMin?'minutes':'secondes')+'" value="'+val+'" oninput="rSet('+ei+','+si+',\''+(enMin?'min':'sec')+'\',this.value)" />';
+      } else if(enPdc){
+        champs='<span class="wset-pdc">PDC</span>'
+          +'<input class="wset-in wset-lest" type="number" inputmode="decimal" min="0" placeholder="+kg" value="'+(s.charge?s.charge:'')+'" oninput="rSet('+ei+','+si+',\'charge\',this.value)" />'
           +'<input class="wset-in" type="text" inputmode="numeric" placeholder="reps" value="'+(s.reps||'')+'" oninput="rSet('+ei+','+si+',\'reps\',this.value)" />';
-      return '<div class="wset'+(enTemps?' temps':'')+'">'
+      } else {
+        champs='<input class="wset-in" type="number" inputmode="decimal" min="0" placeholder="kg" value="'+(s.charge?s.charge:'')+'" oninput="rSet('+ei+','+si+',\'charge\',this.value)" />'
+          +'<input class="wset-in" type="text" inputmode="numeric" placeholder="reps" value="'+(s.reps||'')+'" oninput="rSet('+ei+','+si+',\'reps\',this.value)" />';
+      }
+      return '<div class="wset'+(enTemps?' temps':'')+(enPdc?' pdc':'')+'">'
         +'<span class="wset-n">'+(si+1)+'</span>'
         +'<span class="wset-prev">'+prevSetTxt(e.nom,si)+'</span>'
         +champs
@@ -3331,15 +3422,19 @@ function renderRoutineEditor(){
       +'<div class="wexo-sub">'
       +(dansSS?'<span class="ss-badge" style="--ss-col:'+col+';background:'+col+';">Superset '+ssIndex(e.ss)+'</span>':'')
       +'<span class="mode-seg">'
-      +'<button class="mode-btn'+(enTemps?'':' on')+'" onclick="if(\''+(enTemps?'1':'0')+'\'===\'1\')toggleMode('+ei+')">kg \u00d7 reps</button>'
-      +'<button class="mode-btn'+(enTemps?' on':'')+'" onclick="if(\''+(enTemps?'1':'0')+'\'===\'0\')toggleMode('+ei+')">dur\u00e9e</button>'
+      +'<button class="mode-btn'+(mode==='poids'?' on':'')+'" onclick="setMode('+ei+',\'poids\')">kg</button>'
+      +'<button class="mode-btn'+(mode==='pdc'  ?' on':'')+'" onclick="setMode('+ei+',\'pdc\')">PDC</button>'
+      +'<button class="mode-btn'+(mode==='temps'?' on':'')+'" onclick="setMode('+ei+',\'temps\')">sec</button>'
+      +'<button class="mode-btn'+(mode==='min'  ?' on':'')+'" onclick="setMode('+ei+',\'min\')">min</button>'
       +'</span>'
       +'<span>Repos</span><input class="wexo-rest" type="number" inputmode="numeric" min="0" value="'+e.repos+'" oninput="rRepos('+ei+',this.value)" /><span>s</span>'
       +'</div></div>'
       +'<button class="wexo-del" onclick="rDelExo('+ei+')" aria-label="Retirer">&#10005;</button>'
       +'</div>'
-      +'<div class="wset wset-head'+(enTemps?' temps':'')+'"><span class="wset-n">S</span><span class="wset-prev">Pr\u00e9c\u00e9dent</span>'
-      +(enTemps?'<span class="wset-in wset-wide">dur\u00e9e (s)</span>':'<span class="wset-in">kg</span><span class="wset-in">reps</span>')
+      +'<div class="wset wset-head'+(enTemps?' temps':'')+(enPdc?' pdc':'')+'"><span class="wset-n">S</span><span class="wset-prev">Pr\u00e9c\u00e9dent</span>'
+      +(enTemps ? '<span class="wset-in wset-wide">'+(enMin?'minutes':'secondes')+'</span>'
+        : enPdc ? '<span class="wset-pdc"></span><span class="wset-in wset-lest">lest</span><span class="wset-in">reps</span>'
+        : '<span class="wset-in">kg</span><span class="wset-in">reps</span>')
       +'<span></span></div>'
       +rows
       +'<button class="wadd" onclick="rAddSet('+ei+')">+ Ajouter une s\u00e9rie</button>'
@@ -3352,7 +3447,7 @@ function renderRoutineEditor(){
 function estimSeanceMin(exos){
   var sec=0;
   (exos||[]).forEach(function(e){
-    var t=(e.mode==='temps');
+    var t=estTemps(e.mode);
     (e.sets||[]).forEach(function(s){
       sec += (t ? (+s.sec||0) : repsMoy(s.reps)*3.5) + (+e.repos||0);
     });
@@ -3361,9 +3456,14 @@ function estimSeanceMin(exos){
 }
 function seanceTonnage(exos){
   var t=0;
+  var pc=(profil&&+profil.poids)||75;
   (exos||[]).forEach(function(e){
-    if(e.mode==='temps') return;   // pas de tonnage sur les series au temps
-    (e.sets||[]).forEach(function(s){ t+=(+s.charge||0)*repsMoy(s.reps); });
+    if(estTemps(e.mode)) return;                  // pas de tonnage sur les series au temps
+    var pdc=(e.mode==='pdc');
+    (e.sets||[]).forEach(function(s){
+      var charge=(+s.charge||0) + (pdc?pc:0);     // poids du corps + lest eventuel
+      t+=charge*repsMoy(s.reps);
+    });
   });
   return Math.round(t);
 }
@@ -3419,14 +3519,17 @@ function rSet(ei,si,field,val){
   var s=editRoutine.exos[ei] && editRoutine.exos[ei].sets[si]; if(!s) return;
   if(field==='reps') s.reps=val;
   else if(field==='sec') s.sec=Math.max(0, parseInt(val,10)||0);
+  else if(field==='min') s.sec=Math.max(0, Math.round((parseFloat(String(val).replace(',','.'))||0)*60));
   else s.charge=Math.max(0, parseFloat(String(val).replace(',','.'))||0);
   renderRoutineSummary();   // MAJ ciblee : le champ garde le focus
 }
-function toggleMode(ei){
+function setMode(ei,m){
   if(!editRoutine) return;
-  var e=editRoutine.exos[ei]; if(!e) return;
-  e.mode=(e.mode==='temps')?'poids':'temps';
-  if(e.mode==='temps') e.sets.forEach(function(s){ if(!s.sec) s.sec=secDefaut(e.nom); });
+  var e=editRoutine.exos[ei]; if(!e||e.mode===m) return;
+  e.mode=m;
+  if(estTemps(m)) e.sets.forEach(function(s){ if(!s.sec) s.sec=secDefaut(e.nom); });
+  if(m==='pdc')   e.sets.forEach(function(s){ s.pdc=true; });
+  if(m==='poids') e.sets.forEach(function(s){ s.pdc=false; });
   renderRoutineEditor();
 }
 function rRepos(ei,val){
@@ -3438,7 +3541,7 @@ function rAddSet(ei){
   if(!editRoutine) return;
   var e=editRoutine.exos[ei]; if(!e) return;
   var ref=e.sets[e.sets.length-1];
-  e.sets.push({charge:ref?ref.charge:0, reps:ref?ref.reps:'', sec:ref?ref.sec:secDefaut(e.nom)});
+  e.sets.push({charge:ref?ref.charge:0, reps:ref?ref.reps:'', sec:ref?ref.sec:secDefaut(e.nom), pdc:(e.mode==='pdc')});
   renderRoutineEditor();
 }
 function rDelSet(ei,si){
@@ -3451,6 +3554,15 @@ function rDelExo(ei){
   if(!editRoutine) return;
   editRoutine.exos.splice(ei,1); ssNettoyer(); renderRoutineEditor();
 }
+function deleteFromEditor(){
+  if(editRoutineIdx<0){ closeRoutineEditor(); return; }
+  var nom=seancesHist[editRoutineIdx] ? seancesHist[editRoutineIdx].nom : '';
+  if(!confirm('Supprimer d\u00e9finitivement la s\u00e9ance "'+nom+'" ?')) return;
+  seancesHist.splice(editRoutineIdx,1);
+  localStorage.setItem('ns_seances',JSON.stringify(seancesHist));
+  closeRoutineEditor(); renderRoutines();
+  toast('S\u00e9ance supprim\u00e9e');
+}
 function saveRoutineEditor(silencieux){
   if(!editRoutine) return;
   var nom=(editRoutine.nom||'').trim();
@@ -3461,7 +3573,7 @@ function saveRoutineEditor(silencieux){
     return {nom:e.nom, repos:e.repos, series:e.sets.length, ss:e.ss||0, mode:e.mode||'poids',
             reps:(e.sets[0]&&e.sets[0].reps)||'',
             charge:charges.length?Math.max.apply(null,charges):0,
-            sets:e.sets.map(function(s){return {charge:+s.charge||0, reps:s.reps||'', sec:+s.sec||0};}),
+            sets:e.sets.map(function(s){return {charge:+s.charge||0, reps:s.reps||'', sec:+s.sec||0, pdc:!!s.pdc};}),
             duree:0, type:'single'};
   });
   if(editRoutineIdx>=0 && seancesHist[editRoutineIdx]){
@@ -3532,7 +3644,8 @@ function pickerAdd(nom){
   for(var j=0;j<n;j++) rs.push({
     charge:last[j]?last[j].charge:0,
     reps:last[j]?last[j].reps:'',
-    sec:(last[j]&&last[j].sec)?last[j].sec:secDefaut(nom)
+    sec:(last[j]&&last[j].sec)?last[j].sec:secDefaut(nom),
+    pdc:(mode==='pdc')
   });
   editRoutine.exos.push({nom:nom, repos:reposDefaut(nom), mode:mode, sets:rs});
   renderRoutineEditor(); renderPicker();
@@ -3546,7 +3659,7 @@ function lastSetsOf(nom){
     var e=(workouts[i].exos||[]).find(function(x){return x.nom===nom;});
     if(e){
       var faites=(e.sets||[]).filter(function(s){return s.done;});
-      if(faites.length) return faites.map(function(s){return {charge:+s.charge||0, reps:s.reps||'', sec:+s.sec||0};});
+      if(faites.length) return faites.map(function(s){return {charge:+s.charge||0, reps:s.reps||'', sec:+s.sec||0, pdc:!!s.pdc};});
     }
   }
   return [];
@@ -3556,7 +3669,10 @@ function prevSetTxt(nom,si){
   var last=lastSetsOf(nom);
   var s=last[si]||last[last.length-1];
   if(!s) return '\u2014';
-  if(+s.sec>0 && !(+s.charge>0) && !s.reps) return (+s.sec)+' s';
+  if(+s.sec>0 && !(+s.charge>0) && !s.reps){
+    return (+s.sec>=120) ? (Math.round(+s.sec/60*10)/10)+' min' : (+s.sec)+' s';
+  }
+  if(s.pdc) return 'PDC'+(+s.charge>0?' +'+(+s.charge)+'kg':'')+' \u00d7 '+(s.reps||'?');
   if(+s.charge>0) return (+s.charge)+' kg \u00d7 '+(s.reps||'?');
   if(s.reps) return s.reps+' reps';
   if(+s.sec>0) return (+s.sec)+' s';
