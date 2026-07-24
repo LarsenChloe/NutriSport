@@ -260,6 +260,8 @@ input.wset-in::placeholder{color:var(--text3);font-weight:400;font-size:12px;}
 .bilan-val{font-size:12.5px;font-weight:800;color:var(--text);text-align:right;font-variant-numeric:tabular-nums;}
 .bilan-res{font-size:17px;font-weight:800;margin-top:11px;letter-spacing:-.01em;}
 .bilan-msg{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.45;}
+.wc-leg{display:flex;justify-content:center;gap:12px;margin-top:8px;font-size:9px;color:var(--text3);}
+.wc-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle;}
 .bilan-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px;padding-top:12px;border-top:1px solid var(--border);}
 .bchip{background:var(--card2);border-radius:13px;padding:9px 5px 8px;text-align:center;}
 .bchip-ic{font-size:15px;line-height:1;}
@@ -782,7 +784,7 @@ input.wset-in::placeholder{color:var(--text3);font-weight:400;font-size:12px;}
   </div>
   <div class="card" style="padding:12px;margin-bottom:8px;"><div id="jour-items-list"><div class="empty-state"><div class="empty-icon">&#127869;&#65039;</div>Aucun aliment ce jour.<br>Utilise la recherche nutrition !</div></div></div>
   <div style="margin-top:10px;">
-    <div class="section-hd">7 derniers jours</div>
+    <div class="section-hd">Bilan des 7 derniers jours</div>
     <div class="card chart-card" style="padding:12px 14px;margin-bottom:10px;" id="week-chart-card"><div id="week-chart"></div></div>
     <div class="section-hd">Historique</div><div id="jour-history"></div>
   </div>
@@ -2597,8 +2599,7 @@ function renderBilan(apport, sportKcal){
   var el=document.getElementById('j-bilan'); if(!el) return;
   var base=depenseBase();
   var depense=base+sportKcal;
-  if(!apport && !sportKcal){ el.style.display='none'; return; }
-  el.style.display='block';
+  el.style.display='block';   // toujours visible : c'est le repere du jour
 
   var bilan=depense-apport;           // >0 : deficit
   var cible=deficitCible();
@@ -2632,7 +2633,9 @@ function renderBilan(apport, sportKcal){
 
   // Message de contexte, adapte a l'objectif
   var msg;
-  if(apport===0){
+  if(apport===0 && !sportKcal){
+    msg='Journ\u00e9e \u00e0 peine commenc\u00e9e. Ta d\u00e9pense estim\u00e9e est de '+depense+' kcal \u2014 ajoute tes repas.';
+  } else if(apport===0){
     msg='Journ\u00e9e \u00e0 peine commenc\u00e9e \u2014 ajoute tes repas pour un bilan repr\u00e9sentatif.';
   } else if(cible>0){                            // objectif de perte / recomposition
     if(!deficit) msg='Objectif : d\u00e9penser environ '+cible+' kcal de plus que ton apport.';
@@ -2808,32 +2811,77 @@ function renderPoids(){
 function renderWeekChart(kcalCible){
   var el=document.getElementById('week-chart'); if(!el) return;
   var js2=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-  var days=[];
+  var base=depenseBase(), cible=deficitCible();
+  var jours=[];
   for(var i=6;i>=0;i--){
-    var d=new Date();d.setDate(d.getDate()-i);
+    var d=new Date(); d.setDate(d.getDate()-i);
     var k=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
-    var kc=0;(journal[k]||[]).forEach(function(it){kc+=it.kcal;});
-    days.push({lbl:js2[d.getDay()],kcal:kc,today:i===0});
+    var apport=0; (journal[k]||[]).forEach(function(it){ apport+=it.kcal; });
+    var sport=sportKcalDay(k);
+    // Sans repas enregistre, le bilan n'a pas de sens : on laisse la barre vide
+    jours.push({lbl:js2[d.getDay()], bilan:(apport>0 ? (base+sport-apport) : null), today:(i===0)});
   }
-  var maxV=Math.max(kcalCible*1.15,Math.max.apply(null,days.map(function(d){return d.kcal;})),1);
-  var W=320,H=110,P=6,bottom=16;
-  var bw=(W-2*P)/7*0.55;
-  var slot=(W-2*P)/7;
-  function Y(v){return H-bottom-(v/maxV)*(H-bottom-P);}
-  var bars='';
-  days.forEach(function(d,i){
-    var x=(P+i*slot+(slot-bw)/2).toFixed(1);
-    var y=Y(d.kcal).toFixed(1);
-    var h=Math.max(H-bottom-Y(d.kcal),d.kcal>0?2:0).toFixed(1);
-    var col=d.kcal===0?'var(--card2)':d.kcal>kcalCible*1.1?'#F87171':d.kcal>=kcalCible*0.8?'#35D08F':'#F5A524';
-    bars+='<rect x="'+x+'" y="'+y+'" width="'+bw.toFixed(1)+'" height="'+h+'" rx="3" fill="'+col+'"'+(d.today?'':' opacity="0.75"')+'/>';
-    bars+='<text x="'+(P+i*slot+slot/2).toFixed(1)+'" y="'+(H-4)+'" text-anchor="middle" font-size="9" font-weight="'+(d.today?'700':'400')+'" fill="'+(d.today?'#35D08F':'rgba(225,205,0,.55)')+'">'+d.lbl+'</text>';
+
+  // Couleur selon l'ecart a l'objectif (logique inversee en prise de masse)
+  function couleur(b){
+    if(cible>0){
+      if(b<=0) return '#F87171';                 // surplus alors qu'on vise un deficit
+      if(b>=cible*0.7 && b<=cible*2.2) return '#35D08F';
+      return '#F5A524';
+    }
+    var s=-cible;
+    if(b>=0) return '#F87171';                   // deficit alors qu'on vise un surplus
+    if(-b>=s*0.7 && -b<=s*2.2) return '#35D08F';
+    return '#F5A524';
+  }
+
+  var vals=jours.filter(function(j){return j.bilan!==null;}).map(function(j){return j.bilan;});
+  if(!vals.length){
+    el.innerHTML='<div style="font-size:11.5px;color:var(--text3);text-align:center;padding:22px 0;">Enregistre tes repas pour voir ton bilan des 7 derniers jours.</div>';
+    return;
+  }
+  var maxPos=Math.max(0, Math.max.apply(null,vals), cible>0?cible:0);
+  var maxNeg=Math.max(0, -Math.min.apply(null,vals), cible<0?-cible:0);
+  if(maxPos===0 && maxNeg===0) maxPos=1;
+
+  var W=320, H=132, P=14, bottom=16;
+  var haut=H-bottom-P;                                   // hauteur utile
+  var total=maxPos+maxNeg || 1;
+  var zeroY=P + (maxPos/total)*haut;
+  function Y(v){
+    if(v>=0) return zeroY - (maxPos? (v/maxPos)*(zeroY-P) : 0);
+    return zeroY + (maxNeg? (-v/maxNeg)*(H-bottom-zeroY) : 0);
+  }
+
+  var slot=(W-2*P)/7, bw=slot*0.5;
+  var barres='';
+  jours.forEach(function(j,i){
+    var cx=P+i*slot+slot/2;
+    var x=(cx-bw/2).toFixed(1);
+    if(j.bilan===null){
+      // journee sans donnee : trait discret sur la ligne zero
+      barres+='<rect x="'+x+'" y="'+(zeroY-1.5).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="3" rx="1.5" fill="var(--card2)"/>';
+    } else {
+      var y1=Y(j.bilan), h=Math.max(Math.abs(y1-zeroY),2);
+      var y=(j.bilan>=0? y1 : zeroY).toFixed(1);
+      barres+='<rect x="'+x+'" y="'+y+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="3" fill="'+couleur(j.bilan)+'"'+(j.today?'':' opacity="0.75"')+'/>';
+      // valeur au bout de la barre
+      var vy = j.bilan>=0 ? (y1-3.5) : (Y(j.bilan)+9);
+      barres+='<text x="'+cx.toFixed(1)+'" y="'+vy.toFixed(1)+'" text-anchor="middle" font-size="8" font-weight="700" fill="'+couleur(j.bilan)+'">'
+        +(j.bilan>0?'+':'')+Math.round(j.bilan)+'</text>';
+    }
+    barres+='<text x="'+cx.toFixed(1)+'" y="'+(H-4)+'" text-anchor="middle" font-size="9" font-weight="'+(j.today?'700':'400')+'" fill="'+(j.today?'#35D08F':'var(--text3)')+'">'+j.lbl+'</text>';
   });
-  var ty=Y(kcalCible).toFixed(1);
-  el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="max-height:130px;">'
-    +'<line x1="'+P+'" y1="'+ty+'" x2="'+(W-P)+'" y2="'+ty+'" stroke="#35D08F" stroke-width="1" stroke-dasharray="4 4" opacity="0.5"/>'
-    +'<text x="'+(W-P)+'" y="'+(ty-3)+'" text-anchor="end" font-size="8" fill="#35D08F" opacity="0.8">'+kcalCible+' kcal</text>'
-    +bars+'</svg>';
+
+  var cy=Y(cible).toFixed(1);
+  el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="max-height:150px;">'
+    +'<line x1="'+P+'" y1="'+zeroY.toFixed(1)+'" x2="'+(W-P)+'" y2="'+zeroY.toFixed(1)+'" stroke="var(--border)" stroke-width="1"/>'
+    +'<line x1="'+P+'" y1="'+cy+'" x2="'+(W-P)+'" y2="'+cy+'" stroke="#35D08F" stroke-width="1" stroke-dasharray="4 4" opacity="0.55"/>'
+    +'<text x="'+(W-P)+'" y="'+(+cy-3)+'" text-anchor="end" font-size="8" fill="#35D08F" opacity="0.85">objectif '+(cible>0?'-':'+')+Math.abs(cible)+'</text>'
+    +barres+'</svg>'
+    +'<div class="wc-leg"><span><span class="wc-dot" style="background:#35D08F;"></span>dans la cible</span>'
+    +'<span><span class="wc-dot" style="background:#F5A524;"></span>hors cible</span>'
+    +'<span><span class="wc-dot" style="background:#F87171;"></span>'+(cible>0?'surplus':'d\u00e9ficit')+'</span></div>';
 }
 
 // ===================== AJOUTS RAPIDES =====================
