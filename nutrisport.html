@@ -2879,17 +2879,19 @@ function renderWeekChart(kcalCible){
     jours.push({lbl:js2[d.getDay()], bilan:(apport>0 ? (dep-apport) : null), today:(i===0)});
   }
 
-  // Couleur selon l'ecart a l'objectif (logique inversee en prise de masse)
+  // Trois couleurs franches et bien distinctes selon l'ecart a l'objectif :
+  //   VERT  = dans la cible · AMBRE = hors cible (trop peu/trop) · BLEU = mauvais cote
+  var C_OK='#35D08F', C_HORS='#F5A524', C_MAUVAIS='#3B82F6';
   function couleur(b){
-    if(cible>0){
-      if(b<=0) return '#F87171';                 // surplus alors qu'on vise un deficit
-      if(b>=cible*0.7 && b<=cible*2.2) return '#35D08F';
-      return '#F5A524';
+    if(cible>0){                                  // objectif de deficit (perte/recomp)
+      if(b<=0) return C_MAUVAIS;                   // surplus alors qu'on vise un deficit
+      if(b>=cible*0.7 && b<=cible*2.2) return C_OK;
+      return C_HORS;                              // deficit trop faible ou trop important
     }
-    var s=-cible;
-    if(b>=0) return '#F87171';                   // deficit alors qu'on vise un surplus
-    if(-b>=s*0.7 && -b<=s*2.2) return '#35D08F';
-    return '#F5A524';
+    var s=-cible;                                 // objectif de surplus (prise)
+    if(b>=0) return C_MAUVAIS;                     // deficit alors qu'on vise un surplus
+    if(-b>=s*0.7 && -b<=s*2.2) return C_OK;
+    return C_HORS;
   }
 
   var vals=jours.filter(function(j){return j.bilan!==null;}).map(function(j){return j.bilan;});
@@ -2930,8 +2932,12 @@ function renderWeekChart(kcalCible){
       barres+='<rect x="'+x+'" y="'+y+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="3" fill="'+couleur(j.bilan)+'"'+(j.today?'':' opacity="0.75"')+'/>';
       // Valeur : au-dessus si deficit (barre vers le haut), en-dessous du bas de barre si surplus
       var vy = j.bilan>=0 ? (y1-4) : (Y(j.bilan)+padVal-3);
+      // Convention nutritionnelle : deficit affiche en negatif (calories "en moins"),
+      // surplus en positif. Le bilan interne reste depense-apport (>0 = deficit),
+      // donc on inverse uniquement le SIGNE affiche, pas la geometrie.
+      var affiche=-Math.round(j.bilan);
       barres+='<text x="'+cx.toFixed(1)+'" y="'+vy.toFixed(1)+'" text-anchor="middle" font-size="9.5" font-weight="700" fill="'+couleur(j.bilan)+'">'
-        +(j.bilan>0?'+':'')+Math.round(j.bilan)+'</text>';
+        +(affiche>0?'+':'')+affiche+'</text>';
     }
     barres+='<text x="'+cx.toFixed(1)+'" y="'+labelY+'" text-anchor="middle" font-size="10" font-weight="'+(j.today?'700':'400')+'" fill="'+(j.today?'#35D08F':'var(--text3)')+'">'+j.lbl+'</text>';
   });
@@ -2944,7 +2950,7 @@ function renderWeekChart(kcalCible){
     +barres+'</svg>'
     +'<div class="wc-leg"><span><span class="wc-dot" style="background:#35D08F;"></span>dans la cible</span>'
     +'<span><span class="wc-dot" style="background:#F5A524;"></span>hors cible</span>'
-    +'<span><span class="wc-dot" style="background:#F87171;"></span>'+(cible>0?'surplus':'d\u00e9ficit')+'</span></div>';
+    +'<span><span class="wc-dot" style="background:#3B82F6;"></span>'+(cible>0?'surplus':'d\u00e9ficit')+'</span></div>';
 }
 
 // ===================== AJOUTS RAPIDES =====================
