@@ -295,10 +295,29 @@ input.wset-in::placeholder{color:var(--text3);font-weight:400;font-size:12px;}
 .wc-leg{display:flex;justify-content:center;gap:12px;margin-top:8px;font-size:9px;color:var(--text3);}
 .wc-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle;}
 .bilan-chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px;padding-top:12px;border-top:1px solid var(--border);}
+.bilan-chips.four{grid-template-columns:repeat(4,1fr);}
 .bchip{background:var(--card2);border-radius:13px;padding:9px 5px 8px;text-align:center;}
 .bchip-ic{font-size:15px;line-height:1;}
 .bchip-v{font-size:14px;font-weight:800;margin-top:5px;font-variant-numeric:tabular-nums;line-height:1;}
 .bchip-l{font-size:8.5px;color:var(--text3);margin-top:3px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;}
+
+/* TUILE PAS */
+.pas-card{padding:14px 16px 13px;margin-bottom:10px;}
+.pas-hd{font-size:11px;font-weight:700;color:var(--text2);}
+.pas-main{display:flex;align-items:center;gap:12px;margin-top:10px;}
+.pas-count-wrap{flex:1;min-width:0;display:flex;align-items:baseline;gap:6px;}
+input#pas-input{width:100%;max-width:150px;background:transparent;border:none;border-bottom:2px solid var(--border);color:var(--title);font-family:'Banana Yellow',sans-serif;font-size:38px;line-height:1;padding:0 2px 2px;margin:0;text-align:left;transition:border-color .2s;}
+input#pas-input:focus{outline:none;border-bottom-color:var(--y-mid);}
+input#pas-input::placeholder{color:var(--text3);opacity:.4;}
+.pas-count-lbl{font-size:12px;font-weight:700;color:var(--text3);flex-shrink:0;}
+.pas-arrow{font-size:18px;color:var(--text3);flex-shrink:0;}
+.pas-kcal-box{flex-shrink:0;text-align:center;background:linear-gradient(135deg,rgba(245,165,36,.16),rgba(248,113,113,.16));border-radius:14px;padding:8px 15px;min-width:74px;}
+.pas-kcal-v{font-size:24px;font-weight:800;color:#F5A524;line-height:1;font-variant-numeric:tabular-nums;}
+.pas-kcal-l{font-size:9.5px;font-weight:700;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-top:3px;}
+.pas-sub{font-size:10.5px;color:var(--text3);margin-top:10px;}
+.pas-quick{display:flex;gap:6px;margin-top:11px;}
+.pas-quick button{background:var(--card2);border:1px solid var(--border);color:var(--text2);border-radius:9px;height:30px;padding:0 10px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;}
+.pas-quick button:active{transform:scale(.95);background:var(--y-light);}
 
 .jsport-lien{color:#F5A524;font-weight:700;text-decoration:underline;cursor:pointer;}
 .mk-opt{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;background:var(--card2);border:1.5px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;transition:border-color .15s;}
@@ -741,6 +760,29 @@ input.wset-in::placeholder{color:var(--text3);font-weight:400;font-size:12px;}
     <div id="jour-bilan-global" style="margin-top:8px;padding:7px 10px;border-radius:9px;font-size:11px;font-weight:600;text-align:center;display:none;"></div>
   </div>
   <div id="j-bilan" class="bilan-card" style="display:none;"></div>
+  <!-- PAS -->
+  <div class="card pas-card">
+    <div class="pas-hd">&#128094; Pas du jour</div>
+    <div class="pas-main">
+      <div class="pas-count-wrap">
+        <input type="number" id="pas-input" inputmode="numeric" min="0" max="100000" placeholder="0" oninput="setPasFromInput(this.value)" />
+        <span class="pas-count-lbl">pas</span>
+      </div>
+      <div class="pas-arrow">&#8594;</div>
+      <div class="pas-kcal-box">
+        <div class="pas-kcal-v" id="pas-kcal-v">0</div>
+        <div class="pas-kcal-l">kcal</div>
+      </div>
+    </div>
+    <div class="pas-sub" id="pas-sub">Saisis tes pas du jour</div>
+    <div class="pas-quick">
+      <button onclick="addPas(1000)">+1000</button>
+      <button onclick="addPas(2000)">+2000</button>
+      <button onclick="addPas(5000)">+5000</button>
+      <button onclick="setPas(0)" style="margin-left:auto;color:var(--text3);">Remettre &#224; 0</button>
+    </div>
+  </div>
+
   <!-- HYDRATATION -->
   <div class="card" style="padding:12px 14px;margin-bottom:10px;">
     <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -1841,7 +1883,7 @@ function safeLoad(key, fallback){
   }
 }
 
-var DATA_VERSION=2;
+var DATA_VERSION=3;
 function migrateData(){
   var v=parseInt(localStorage.getItem('ns_version')||'0',10)||0;
   if(v>=DATA_VERSION) return;
@@ -1860,11 +1902,20 @@ function migrateData(){
       localStorage.setItem('ns_seances', JSON.stringify(hist));
     }catch(e){}
   }
-  // Exemple pour plus tard :
-  // if(v<2){ /* transformer les anciennes donnees ici, sans jamais les supprimer */ }
+  if(v<3){
+    // v -> realignement Objectif = Depense (socle 1,35, activite ignoree).
+    // On recalcule kcal_cible pour les profils existants, sans toucher au reste.
+    try{
+      var pr=JSON.parse(localStorage.getItem('ns_profil')||'null');
+      if(pr && pr.poids && pr.taille && pr.age && pr.sexe){
+        var rr=calcBesoins(pr.poids,pr.taille,pr.age,pr.sexe,pr.activite,pr.but);
+        pr.kcal_cible=rr.kcal; pr.prot_cible=rr.prot;
+        localStorage.setItem('ns_profil', JSON.stringify(pr));
+      }
+    }catch(e){}
+  }
   localStorage.setItem('ns_version', String(DATA_VERSION));
 }
-migrateData();
 
 // Demande au navigateur de proteger le stockage contre la purge automatique (iOS)
 try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
@@ -1876,6 +1927,7 @@ var seancesHist=safeLoad('ns_seances', []);
 var recettes=safeLoad('ns_recettes', []);
 var eau=safeLoad('ns_eau', {});
 var poids=safeLoad('ns_poids', []);
+var pas=safeLoad('ns_pas', {});   // pas par jour, cle AAAA-M-J
 var workouts=safeLoad('ns_workouts', []);   // seances reellement effectuees
 var currentAliment=null;
 var qtyUnit='g';
@@ -1920,12 +1972,21 @@ function obShowCalcul(){
 }
 function calcBesoins(poids,taille,age,sexe,act,but){
   var bmr=sexe==='h'?10*poids+6.25*taille-5*age+5:10*poids+6.25*taille-5*age-161;
-  var tdee=Math.round(bmr*act);
-  var kcal_cible,prot_cible,note;
-  if(but==='perte'){kcal_cible=tdee-400;prot_cible=Math.round(poids*2);note='Déficit modéré — perte ~0.5kg/sem';}
-  else if(but==='recomp'){kcal_cible=tdee-150;prot_cible=Math.round(poids*2.2);note='Léger déficit + protéines élevées';}
-  else{kcal_cible=tdee+200;prot_cible=Math.round(poids*1.8);note='Léger surplus — prise de muscle';}
-  return{kcal:kcal_cible,prot:prot_cible,tdee:tdee,txt:'⚡ TDEE: '+tdee+' kcal/jour<br>🎯 Objectif: <strong>'+kcal_cible+' kcal</strong> · <strong>'+prot_cible+'g protéines</strong><br>📝 '+note};
+  // Socle de vie courante commun a l'Objectif ET a la Depense (le facteur
+  // d'activite choisi a l'onboarding est conserve dans l'interface mais
+  // IGNORE ici : l'objectif = depense de base, pas un TDEE gonfle).
+  var SOCLE=1.35;
+  var depenseBaseVal=Math.round(bmr*SOCLE);
+  // L'objectif est la LIMITE D'APPORT = depense de vie courante.
+  // Au reveil (0 pas, 0 sport), Depense affichee == Objectif.
+  // Le deficit/surplus se creuse ensuite via le sport et les pas.
+  var kcal_cible=depenseBaseVal;
+  var prot_cible;
+  if(but==='perte'){prot_cible=Math.round(poids*2);}
+  else if(but==='recomp'){prot_cible=Math.round(poids*2.2);}
+  else{prot_cible=Math.round(poids*1.8);}
+  var tdee=depenseBaseVal;
+  return{kcal:kcal_cible,prot:prot_cible,tdee:tdee,txt:'🎯 Objectif: <strong>'+kcal_cible+' kcal</strong> · <strong>'+prot_cible+'g protéines</strong>'};
 }
 function obFinish(){
   profil={prenom:document.getElementById('ob-prenom').value.trim(),age:+document.getElementById('ob-age').value,sexe:document.getElementById('ob-sexe').value,poids:+document.getElementById('ob-poids').value,taille:+document.getElementById('ob-taille').value,objectif:+document.getElementById('ob-objectif').value,activite:+document.getElementById('ob-activite').value,but:document.getElementById('ob-but').value};
@@ -1939,6 +2000,7 @@ function startApp(){document.getElementById('onboarding').style.display='none';d
 
 // ===================== INIT =====================
 function initApp(){
+  try{migrateData();}catch(e){}
   var d=new Date();
   var jours=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
   var mois=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
@@ -1953,6 +2015,7 @@ function initApp(){
   }
   renderQuickAdds();
   renderEauTile();
+  renderPasTile();
   exportNudge();
   // Journal hero date
   var jh=document.getElementById('jour-date-hd'); if(jh) jh.textContent=dateStr;
@@ -2569,6 +2632,8 @@ function fmtDuree(sec){
 // Trois vignettes compactes : corps / sport / limite
 function bilanChips(base,sport){
   var limite=(profil&&+profil.kcal_cible)||2000;
+  var pasK=pasKcalDay();
+  base=base-pasK;   // la vignette "corps" montre le metabolisme+quotidien SANS les pas
   function chip(ic,val,lbl,col){
     return '<div class="bchip">'
       +'<div class="bchip-ic">'+ic+'</div>'
@@ -2576,11 +2641,13 @@ function bilanChips(base,sport){
       +'<div class="bchip-l">'+lbl+'</div>'
       +'</div>';
   }
-  return '<div class="bilan-chips">'
+  var np=pasDuJour();
+  var chips='<div class="bilan-chips'+(np>0?' four':'')+'">'
     + chip('\uD83D\uDD0B', base,   'corps',  '#F5A524')
+    + (np>0 ? chip('\uD83D\uDC5F', pasK, 'pas', '#60A5FA') : '')
     + chip('\uD83D\uDD25', sport,  'sport',  '#F87171')
-    + chip('\uD83C\uDFAF', limite, 'limite', '#E1CD00')
-    + '</div>';
+    + chip('\uD83C\uDFAF', limite, 'limite', '#E1CD00');
+  return chips + '</div>';
 }
 
 // ---------- Carte "bilan energetique du jour" ----------
@@ -2800,15 +2867,16 @@ function renderPoids(){
 function renderWeekChart(kcalCible){
   var el=document.getElementById('week-chart'); if(!el) return;
   var js2=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-  var base=depenseBase(), cible=deficitCible();
+  var cible=deficitCible();
   var jours=[];
   for(var i=6;i>=0;i--){
     var d=new Date(); d.setDate(d.getDate()-i);
     var k=d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
     var apport=0; (journal[k]||[]).forEach(function(it){ apport+=it.kcal; });
     var sport=sportKcalDay(k);
+    var dep=depenseBase(k)+sport;   // base du jour (pas inclus) + sport de ce jour
     // Sans repas enregistre, le bilan n'a pas de sens : on laisse la barre vide
-    jours.push({lbl:js2[d.getDay()], bilan:(apport>0 ? (base+sport-apport) : null), today:(i===0)});
+    jours.push({lbl:js2[d.getDay()], bilan:(apport>0 ? (dep-apport) : null), today:(i===0)});
   }
 
   // Couleur selon l'ecart a l'objectif (logique inversee en prise de masse)
@@ -2833,37 +2901,43 @@ function renderWeekChart(kcalCible){
   var maxNeg=Math.max(0, -Math.min.apply(null,vals), cible<0?-cible:0);
   if(maxPos===0 && maxNeg===0) maxPos=1;
 
-  var W=320, H=132, P=14, bottom=16;
-  var haut=H-bottom-P;                                   // hauteur utile
+  // Geometrie : bandes reservees en haut/bas pour les valeurs chiffrees,
+  // et une bande basse fixe pour les labels de jours (jamais de chevauchement).
+  var W=340, H=190, P=14;
+  var padVal=13;        // espace pour la valeur au bout d'une barre
+  var labelH=20;        // bande des jours (Sam, Dim...) tout en bas
+  var top=P+padVal;                 // haut de la zone de barres
+  var bottomBars=H-labelH-padVal;   // bas de la zone de barres
+  var haut=bottomBars-top;
   var total=maxPos+maxNeg || 1;
-  var zeroY=P + (maxPos/total)*haut;
+  var zeroY=top + (maxPos/total)*haut;
   function Y(v){
-    if(v>=0) return zeroY - (maxPos? (v/maxPos)*(zeroY-P) : 0);
-    return zeroY + (maxNeg? (-v/maxNeg)*(H-bottom-zeroY) : 0);
+    if(v>=0) return zeroY - (maxPos? (v/maxPos)*(zeroY-top) : 0);
+    return zeroY + (maxNeg? (-v/maxNeg)*(bottomBars-zeroY) : 0);
   }
 
-  var slot=(W-2*P)/7, bw=slot*0.5;
+  var slot=(W-2*P)/7, bw=slot*0.46;
+  var labelY=H-6;   // ligne de base des jours, sous toutes les barres
   var barres='';
   jours.forEach(function(j,i){
     var cx=P+i*slot+slot/2;
     var x=(cx-bw/2).toFixed(1);
     if(j.bilan===null){
-      // journee sans donnee : trait discret sur la ligne zero
       barres+='<rect x="'+x+'" y="'+(zeroY-1.5).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="3" rx="1.5" fill="var(--card2)"/>';
     } else {
       var y1=Y(j.bilan), h=Math.max(Math.abs(y1-zeroY),2);
       var y=(j.bilan>=0? y1 : zeroY).toFixed(1);
       barres+='<rect x="'+x+'" y="'+y+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="3" fill="'+couleur(j.bilan)+'"'+(j.today?'':' opacity="0.75"')+'/>';
-      // valeur au bout de la barre
-      var vy = j.bilan>=0 ? (y1-3.5) : (Y(j.bilan)+9);
-      barres+='<text x="'+cx.toFixed(1)+'" y="'+vy.toFixed(1)+'" text-anchor="middle" font-size="8" font-weight="700" fill="'+couleur(j.bilan)+'">'
+      // Valeur : au-dessus si deficit (barre vers le haut), en-dessous du bas de barre si surplus
+      var vy = j.bilan>=0 ? (y1-4) : (Y(j.bilan)+padVal-3);
+      barres+='<text x="'+cx.toFixed(1)+'" y="'+vy.toFixed(1)+'" text-anchor="middle" font-size="9.5" font-weight="700" fill="'+couleur(j.bilan)+'">'
         +(j.bilan>0?'+':'')+Math.round(j.bilan)+'</text>';
     }
-    barres+='<text x="'+cx.toFixed(1)+'" y="'+(H-4)+'" text-anchor="middle" font-size="9" font-weight="'+(j.today?'700':'400')+'" fill="'+(j.today?'#35D08F':'var(--text3)')+'">'+j.lbl+'</text>';
+    barres+='<text x="'+cx.toFixed(1)+'" y="'+labelY+'" text-anchor="middle" font-size="10" font-weight="'+(j.today?'700':'400')+'" fill="'+(j.today?'#35D08F':'var(--text3)')+'">'+j.lbl+'</text>';
   });
 
   var cy=Y(cible).toFixed(1);
-  el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="max-height:150px;">'
+  el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;">'
     +'<line x1="'+P+'" y1="'+zeroY.toFixed(1)+'" x2="'+(W-P)+'" y2="'+zeroY.toFixed(1)+'" stroke="var(--border)" stroke-width="1"/>'
     +'<line x1="'+P+'" y1="'+cy+'" x2="'+(W-P)+'" y2="'+cy+'" stroke="#35D08F" stroke-width="1" stroke-dasharray="4 4" opacity="0.55"/>'
     +'<text x="'+(W-P)+'" y="'+(+cy-3)+'" text-anchor="end" font-size="8" fill="#35D08F" opacity="0.85">objectif '+(cible>0?'-':'+')+Math.abs(cible)+'</text>'
@@ -2913,7 +2987,7 @@ function exportNudge(){
   }catch(e){}
 }
 function exportData(){
-  var keys=['ns_profil','ns_journal','ns_programme','ns_seances','ns_workouts','ns_recettes','ns_menus','ns_custom_aliments','ns_eau','ns_poids'];
+  var keys=['ns_profil','ns_journal','ns_programme','ns_seances','ns_workouts','ns_recettes','ns_menus','ns_custom_aliments','ns_eau','ns_poids','ns_pas'];
   var out={_app:'NutriSport',_date:new Date().toISOString()};
   keys.forEach(function(k){var v=localStorage.getItem(k);if(v!==null) out[k]=JSON.parse(v);});
   var blob=new Blob([JSON.stringify(out,null,1)],{type:'application/json'});
@@ -3263,14 +3337,28 @@ function bmrProfil(){
     ? 10*profil.poids+6.25*profil.taille-5*profil.age+5
     : 10*profil.poids+6.25*profil.taille-5*profil.age-161;
 }
-// Depense du corps hors seances (metabolisme de base + activite quotidienne)
-function depenseBase(){
-  var b=bmrProfil();
-  if(b===null) return (profil&&+profil.kcal_cible)||2000;
-  return Math.round(b*ACT_HORS_SPORT);
+// Le facteur 1,35 suppose deja une marche moyenne : on ne compte donc
+// QUE les pas au-dela de cette base, pour ne pas les compter deux fois.
+var PAS_INCLUS=5000;                 // pas deja compris dans le facteur d'activite
+function kcalParPas(){               // cout d'un pas ~ 0,0005 x poids (kcal)
+  var p=(profil&&+profil.poids)||75;
+  return 0.00047*p;
 }
-// Depense totale d'une journee = vie courante + seances effectuees
-function depenseJour(key){ return depenseBase() + sportKcalDay(key); }
+function pasDuJour(key){ return Math.max(0, parseInt(pas[key||todayKey()],10)||0); }
+// Depense supplementaire liee aux pas SAISIS au-dela de la base
+function pasKcalDay(key){
+  var n=pasDuJour(key);
+  var sup=Math.max(0, n-PAS_INCLUS);
+  return Math.round(sup*kcalParPas());
+}
+// Depense du corps hors seances (metabolisme + vie courante + pas au-dela de la base)
+function depenseBase(key){
+  var b=bmrProfil();
+  var base = (b===null) ? ((profil&&+profil.kcal_cible)||2000) : Math.round(b*ACT_HORS_SPORT);
+  return base + pasKcalDay(key||todayKey());
+}
+// Depense totale d'une journee = vie courante (+pas) + seances effectuees
+function depenseJour(key){ return depenseBase(key) + sportKcalDay(key); }
 // Deficit quotidien vise selon l'objectif (negatif = surplus recherche)
 function deficitCible(){
   var b=profil&&profil.but;
@@ -3793,6 +3881,42 @@ var REPAS_CATS = {
 
 // Exclusions par repas (feux rouges autorisés seulement dans col/din avec modération)
 var FEU_EXCLU_ROUGE = ['pdj','dej'];
+
+// ===================== PAS =====================
+function setPas(n){
+  var k=todayKey();
+  pas[k]=Math.max(0, parseInt(n,10)||0);
+  localStorage.setItem('ns_pas', JSON.stringify(pas));
+  renderPasTile(); renderJournal();
+}
+function addPas(n){ setPas(pasDuJour()+n); }
+function setPasFromInput(v){
+  var k=todayKey();
+  pas[k]=Math.max(0, parseInt(v,10)||0);
+  localStorage.setItem('ns_pas', JSON.stringify(pas));
+  renderPasLabel(); renderJournal();   // MAJ ciblee : l'input garde le focus
+}
+function renderPasLabel(){
+  var n=pasDuJour(), k=pasKcalDay();
+  var km=Math.round(n*0.00075*10)/10;   // ~0,75 m par pas
+  var kv=document.getElementById('pas-kcal-v'); if(kv) kv.textContent=k;
+  var sub=document.getElementById('pas-sub');
+  if(sub){
+    if(n<=0) sub.textContent='Saisis tes pas du jour';
+    else {
+      var inclus=Math.min(n,PAS_INCLUS);
+      sub.innerHTML=n.toLocaleString('fr-FR')+' pas'+(km>0?' \u00b7 '+km+' km':'')
+        +(n>PAS_INCLUS
+            ? ' \u00b7 <span style="color:var(--text2);">'+(n-PAS_INCLUS).toLocaleString('fr-FR')+' au-del\u00e0 du socle</span>'
+            : ' \u00b7 <span style="color:var(--text3);">dans le socle des '+PAS_INCLUS.toLocaleString('fr-FR')+'</span>');
+    }
+  }
+}
+function renderPasTile(){
+  var inp=document.getElementById('pas-input');
+  if(inp) inp.value=pasDuJour()||'';
+  renderPasLabel();
+}
 
 // ===================== ASSISTANT DU JOUR =====================
 // Remplace l'ancien generateur de menu : au lieu d'inventer une journee
