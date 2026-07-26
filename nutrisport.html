@@ -2504,12 +2504,42 @@ function addPlatJournal(){
   localStorage.setItem('ns_journal',JSON.stringify(journal));
   toast(nom+' ajouté au journal ✅');renderJournal();
 }
+// Convertit un plat (totaux absolus pour g grammes) en aliment recherchable
+// (valeurs au 100 g + portion = poids total du plat).
+function ajouterPlatAuxAliments(nom, tot, feu){
+  var g=tot.g||0;
+  if(g<=0) return;
+  var per=100/g;
+  var finalNom='\uD83C\uDF7D\uFE0F '+nom;
+  var exist=ALIMENTS.find(function(a){return a.n===finalNom;});
+  var aliment={
+    n:finalNom,
+    kcal:Math.round(tot.kcal*per),
+    prot:Math.round(tot.prot*per*10)/10,
+    lip:Math.round(tot.lip*per*10)/10,
+    gluc:Math.round(tot.gluc*per*10)/10,
+    fib:Math.round((tot.fib||0)*per*10)/10,
+    cat:'plat', feu:feu, custom:true, estPlat:true,
+    portG:Math.round(g), portLabel:'1 portion'
+  };
+  if(exist){
+    ['kcal','prot','lip','gluc','fib','feu','portG','portLabel'].forEach(function(k){ exist[k]=aliment[k]; });
+    var ci=customAliments.findIndex(function(a){return a.n===finalNom;});
+    if(ci>=0) customAliments[ci]=exist; else customAliments.push(exist);
+  } else {
+    ALIMENTS.push(aliment);
+    customAliments.push(aliment);
+  }
+  localStorage.setItem('ns_custom_aliments', JSON.stringify(customAliments));
+}
+
 function savePlatRecette(){
   if(!platIngredients.length) return;
   var nom=document.getElementById('plat-nom').value.trim()||'Recette sans nom';
   var tot=platCalcTotaux();var feu=platGetFeu();
   recettes.unshift({nom:nom,feu:feu,ingredients:platIngredients.map(function(i){return{nom:i.aliment.n,qty:i.qty};}),totaux:tot,date:new Date().toLocaleDateString('fr-FR')});
   localStorage.setItem('ns_recettes',JSON.stringify(recettes));
+  ajouterPlatAuxAliments(nom, tot, feu);
   renderRecettes();toast('Recette "'+nom+'" sauvegardée ✅');
 }
 function renderRecettes(){
