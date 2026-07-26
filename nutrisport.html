@@ -2018,6 +2018,13 @@ var TYPE_BADGE={muscu:'badge-muscu',cardio:'badge-cardio',hiit:'badge-hiit',mob:
 var TYPE_CARD={muscu:'prog-card-muscu',cardio:'prog-card-cardio',hiit:'prog-card-hiit',mob:'prog-card-mob',repos:'prog-card-repos'};
 var JOURS_ORDER=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
 var JOURS_SHORT=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+function bananaTxt(s){
+  // La police Banana Yellow (titres) n'a pas de glyphes accentues : on retire
+  // les accents pour eviter que le navigateur retombe sur une police de secours.
+  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\u0153/g,'oe').replace(/\u0152/g,'OE')
+    .replace(/\u00e6/g,'ae').replace(/\u00c6/g,'AE');
+}
 function jsq(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 var EQ_LABELS={pdc:'Poids du corps',halteres:'Halt\u00e8res',barre:'Barre',poulie:'Poulie',machine:'Machine',kettlebell:'Kettlebell',elastique:'\u00c9lastique',cardio:'Cardio',banc:'Banc',libre:'Libre'};
 var GRP_LABELS={all:'Tous',pec:'Pecto',dos:'Dos',ep:'Epaules',bras:'Bras',jambes:'Jambes',abdos:'Abdos',cardio:'Cardio',mob:'Mobilité'};
@@ -2083,7 +2090,7 @@ function initApp(){
   var dateStr=jours[d.getDay()]+' '+d.getDate()+' '+mois[d.getMonth()];
   // Nutri hero
   var nh=document.getElementById('nutri-hero-date'); if(nh) nh.textContent=dateStr;
-  var nt=document.getElementById('nutri-hero-title'); if(nt) nt.textContent='Bonjour '+profil.prenom+' !';
+  var nt=document.getElementById('nutri-hero-title'); if(nt) nt.textContent='Bonjour '+bananaTxt(profil.prenom)+' !';
   var ntags=document.getElementById('nutri-hero-tags');
   if(ntags){
     var stk=calcStreak();
