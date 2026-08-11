@@ -316,6 +316,12 @@ input#pas-input::placeholder{color:var(--text3);opacity:.4;}
 .pas-kcal-l{font-size:9.5px;font-weight:700;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-top:3px;}
 .pas-sub{font-size:10.5px;color:var(--text3);margin-top:10px;}
 .theme-opt{display:flex;align-items:center;gap:11px;background:var(--card2);border:1.5px solid var(--border);border-radius:13px;padding:10px 13px;margin-bottom:8px;cursor:pointer;transition:border-color .15s,transform .12s;}.theme-opt.on{border-color:var(--y-mid);}.theme-opt:active{transform:scale(.99);}.theme-swatch{width:34px;height:34px;border-radius:9px;border:2px solid;display:flex;align-items:center;justify-content:center;flex-shrink:0;}.theme-swatch span{width:13px;height:13px;border-radius:50%;display:block;}.theme-nom{flex:1;font-size:13px;font-weight:700;color:var(--text);}.theme-check{color:var(--title);font-weight:800;font-size:15px;}
+/* SELECTEUR NIVEAU D'EFFORT */
+.effort-seg{display:flex;gap:6px;margin-top:6px;}
+.effort-btn{flex:1;background:var(--card2);border:1.5px solid var(--border);color:var(--text2);border-radius:11px;height:38px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .12s;}
+.effort-btn.on{background:var(--y-light);border-color:var(--y-mid);color:var(--title);}
+.effort-btn:active{transform:scale(.96);}
+
 .pas-quick{display:flex;gap:6px;margin-top:11px;}
 .pas-quick button{background:var(--card2);border:1px solid var(--border);color:var(--text2);border-radius:9px;height:30px;padding:0 10px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;}
 .pas-quick button:active{transform:scale(.95);background:var(--y-light);}
@@ -1026,6 +1032,8 @@ input#pas-input::placeholder{color:var(--text3);opacity:.4;}
       <span style="flex:1;"></span>
       <span class="done-lbl" id="sd-kcal"></span>
     </div>
+    <label style="margin-top:14px;">Niveau d'effort</label>
+    <div class="effort-seg" id="sd-effort"></div>
     <button class="btn btn-primary" style="margin-top:14px;" onclick="confirmSeanceDone()">&#10003;&nbsp; J'ai fait cette s&#233;ance</button>
     <button class="btn btn-outline" style="margin-top:8px;" onclick="hideModal('modal-seance-done');editRoutineAt(sdIndex)">Modifier la s&#233;ance</button>
   </div>
@@ -1177,6 +1185,139 @@ var currentTheme = (function(){ try{ return localStorage.getItem('ns_theme')||'b
 
 // ===================== ALIMENTS DATA =====================
 var ALIMENTS=[
+{n:"Boeuf (bavette)",kcal:175,prot:26,lip:8,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Boeuf (onglet)",kcal:175,prot:26,lip:8,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Boeuf (faux-filet)",kcal:210,prot:27,lip:11,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Boeuf (entrecote)",kcal:230,prot:26,lip:14,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Boeuf (rumsteck)",kcal:155,prot:27,lip:5,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Boeuf (filet)",kcal:160,prot:27,lip:6,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Boeuf (paleron)",kcal:175,prot:26,lip:8,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Boeuf (macreuse)",kcal:150,prot:27,lip:5,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Boeuf (joue)",kcal:165,prot:27,lip:6,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Boeuf (jarret)",kcal:150,prot:28,lip:4,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Boeuf (gite)",kcal:150,prot:28,lip:4,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Boeuf (basses cotes)",kcal:220,prot:25,lip:13,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Boeuf (plat de cotes)",kcal:250,prot:24,lip:17,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Boeuf (queue)",kcal:240,prot:26,lip:15,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Boeuf (hache 20%)",kcal:250,prot:24,lip:17,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Boeuf (langue)",kcal:220,prot:21,lip:15,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Veau (cotelette)",kcal:165,prot:27,lip:6,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Veau (filet)",kcal:150,prot:28,lip:4,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Veau (roti)",kcal:160,prot:28,lip:5,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Veau (jarret / osso buco)",kcal:155,prot:28,lip:5,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Veau (tendron)",kcal:210,prot:25,lip:12,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Veau (grenadin)",kcal:155,prot:28,lip:5,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Veau (foie)",kcal:135,prot:20,lip:5,gluc:3,fib:0,cat:"viande",feu:"vert"},
+{n:"Veau (ris)",kcal:235,prot:20,lip:17,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Porc (echine)",kcal:215,prot:25,lip:13,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Porc (palette)",kcal:210,prot:25,lip:12,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Porc (travers)",kcal:290,prot:21,lip:23,gluc:0,fib:0,cat:"viande",feu:"rouge"},
+{n:"Porc (jarret)",kcal:240,prot:24,lip:16,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Porc (roti dans le filet)",kcal:155,prot:28,lip:4,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Porc (cote premiere)",kcal:220,prot:25,lip:13,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Porc (poitrine)",kcal:320,prot:18,lip:28,gluc:0,fib:0,cat:"viande",feu:"rouge"},
+{n:"Porc (joue)",kcal:210,prot:24,lip:13,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Porc (foie)",kcal:130,prot:21,lip:4,gluc:3,fib:0,cat:"viande",feu:"vert"},
+{n:"Agneau (cotelette)",kcal:230,prot:25,lip:15,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Agneau (epaule)",kcal:235,prot:24,lip:16,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Agneau (souris)",kcal:200,prot:26,lip:11,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Agneau (selle)",kcal:215,prot:25,lip:13,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Mouton (gigot)",kcal:205,prot:26,lip:11,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Poulet (aile)",kcal:200,prot:27,lip:10,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Poulet (pilon)",kcal:175,prot:26,lip:8,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Poulet (haut de cuisse)",kcal:185,prot:25,lip:9,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Dinde (cuisse)",kcal:155,prot:28,lip:5,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Dinde (escalope)",kcal:110,prot:24,lip:1,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Pintade",kcal:150,prot:25,lip:6,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Chapon",kcal:200,prot:25,lip:11,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Caille",kcal:190,prot:25,lip:10,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Poule (pot-au-feu)",kcal:200,prot:25,lip:11,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Coq",kcal:160,prot:26,lip:6,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Canard (magret sans peau)",kcal:155,prot:28,lip:5,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Canard (cuisse)",kcal:200,prot:27,lip:10,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Oie",kcal:240,prot:25,lip:15,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Autruche (steak)",kcal:120,prot:26,lip:2,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Sanglier",kcal:120,prot:25,lip:2,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Chevreuil",kcal:120,prot:26,lip:2,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Biche",kcal:115,prot:26,lip:1.5,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Cerf",kcal:120,prot:26,lip:2,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Lievre",kcal:135,prot:27,lip:3,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Faisan",kcal:145,prot:25,lip:5,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Perdrix",kcal:150,prot:25,lip:6,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Rognons (boeuf)",kcal:105,prot:18,lip:3,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Coeur (boeuf)",kcal:110,prot:18,lip:4,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Tripes",kcal:95,prot:15,lip:4,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Langue (veau)",kcal:200,prot:20,lip:13,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Cervelle (agneau)",kcal:130,prot:11,lip:9,gluc:0,fib:0,cat:"viande",feu:"orange"},
+{n:"Foie de genisse",kcal:130,prot:20,lip:4,gluc:3,fib:0,cat:"viande",feu:"vert"},
+{n:"Boudin blanc",kcal:250,prot:12,lip:22,gluc:2,fib:0,cat:"viande",feu:"rouge"},
+{n:"Cheval (steak)",kcal:110,prot:22,lip:2,gluc:0,fib:0,cat:"viande",feu:"vert"},
+{n:"Lotte",kcal:75,prot:16,lip:0.7,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Fletan",kcal:105,prot:21,lip:2.3,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Saint-Pierre",kcal:80,prot:17,lip:1,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Eglefin",kcal:75,prot:17,lip:0.6,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Merlu (colin)",kcal:80,prot:17,lip:1,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Congre",kcal:110,prot:20,lip:3,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Grondin",kcal:90,prot:18,lip:2,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Mulet",kcal:115,prot:19,lip:4,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Vive",kcal:85,prot:18,lip:1.2,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Tacaud",kcal:80,prot:17,lip:1,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Roussette",kcal:100,prot:21,lip:2,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Emissole",kcal:90,prot:20,lip:1.5,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Carrelet (plie)",kcal:80,prot:17,lip:1.5,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Limande",kcal:80,prot:17,lip:1.2,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Barbue",kcal:85,prot:17,lip:1.5,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Cardine",kcal:75,prot:16,lip:1,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Sardine (fraiche)",kcal:165,prot:21,lip:9,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Maquereau (frais)",kcal:205,prot:19,lip:14,gluc:0,fib:0,cat:"poisson",feu:"orange"},
+{n:"Hareng (frais)",kcal:160,prot:18,lip:9,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Anguille",kcal:235,prot:18,lip:18,gluc:0,fib:0,cat:"poisson",feu:"orange"},
+{n:"Flet",kcal:90,prot:18,lip:2,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Eperlan",kcal:100,prot:18,lip:3,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Sprat",kcal:150,prot:18,lip:8,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Tilapia",kcal:95,prot:20,lip:1.7,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Perche",kcal:90,prot:19,lip:1,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Brochet",kcal:90,prot:19,lip:0.9,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Sandre",kcal:85,prot:19,lip:0.7,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Silure",kcal:95,prot:16,lip:3,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Carpe",kcal:125,prot:18,lip:6,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Tanche",kcal:80,prot:17,lip:1,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Gardon",kcal:90,prot:18,lip:2,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Omble chevalier",kcal:155,prot:21,lip:8,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Truite arc-en-ciel",kcal:140,prot:20,lip:6,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Fera",kcal:110,prot:20,lip:3,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Pangasius",kcal:90,prot:15,lip:3,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Mahi-mahi",kcal:85,prot:19,lip:0.7,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Vivaneau",kcal:100,prot:20,lip:1.7,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Merou",kcal:90,prot:19,lip:1,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Barracuda",kcal:110,prot:21,lip:2.6,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Capitaine",kcal:95,prot:20,lip:1.5,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Saint-Pierre du Chili",kcal:90,prot:18,lip:1.8,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Crabe (chair)",kcal:85,prot:18,lip:1,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Tourteau",kcal:110,prot:20,lip:3,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Araignee de mer",kcal:100,prot:19,lip:2,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Ecrevisse",kcal:80,prot:16,lip:1,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Langouste",kcal:90,prot:19,lip:1.5,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Gambas",kcal:95,prot:20,lip:1.5,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Ecrevisse (queues)",kcal:80,prot:16,lip:1,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Bulot",kcal:135,prot:24,lip:0.4,gluc:8,fib:0,cat:"poisson",feu:"vert"},
+{n:"Bigorneau",kcal:130,prot:23,lip:1,gluc:6,fib:0,cat:"poisson",feu:"vert"},
+{n:"Ormeau",kcal:105,prot:17,lip:0.8,gluc:6,fib:0,cat:"poisson",feu:"vert"},
+{n:"Praire",kcal:70,prot:12,lip:1,gluc:3,fib:0,cat:"poisson",feu:"vert"},
+{n:"Coque",kcal:75,prot:12,lip:0.7,gluc:4,fib:0,cat:"poisson",feu:"vert"},
+{n:"Couteau (coquillage)",kcal:80,prot:14,lip:1,gluc:3,fib:0,cat:"poisson",feu:"vert"},
+{n:"Ormeau cru",kcal:100,prot:17,lip:0.7,gluc:6,fib:0,cat:"poisson",feu:"vert"},
+{n:"Bulot cuit",kcal:135,prot:24,lip:0.4,gluc:8,fib:0,cat:"poisson",feu:"vert"},
+{n:"Oursin",kcal:120,prot:12,lip:4,gluc:3,fib:0,cat:"poisson",feu:"vert"},
+{n:"Seiche",kcal:80,prot:16,lip:1,gluc:1,fib:0,cat:"poisson",feu:"vert"},
+{n:"Petoncle",kcal:85,prot:17,lip:0.8,gluc:2,fib:0,cat:"poisson",feu:"vert"},
+{n:"Truite fumee",kcal:155,prot:22,lip:7,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Maquereau fume",kcal:305,prot:19,lip:26,gluc:0,fib:0,cat:"poisson",feu:"orange"},
+{n:"Eglefin fume (haddock)",kcal:100,prot:23,lip:0.8,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Fletan fume",kcal:130,prot:22,lip:5,gluc:0,fib:0,cat:"poisson",feu:"vert"},
+{n:"Oeufs de saumon",kcal:250,prot:30,lip:14,gluc:3,fib:0,cat:"poisson",feu:"orange"},
+{n:"Oeufs de lump",kcal:110,prot:12,lip:5,gluc:3,fib:0,cat:"poisson",feu:"vert"},
+{n:"Tarama (oeufs)",kcal:480,prot:8,lip:48,gluc:5,fib:0,cat:"poisson",feu:"rouge"},
 {n:"Poulet (blanc grillé)",kcal:165,prot:31,lip:3.6,gluc:0,fib:0,cat:"viande",feu:"vert"},
 {n:"Poulet (cuisse sans peau)",kcal:185,prot:26,lip:9,gluc:0,fib:0,cat:"viande",feu:"vert"},
 {n:"Poulet (entier rôti)",kcal:215,prot:25,lip:13,gluc:0,fib:0,cat:"viande",feu:"vert"},
@@ -1937,7 +2078,91 @@ var EXERCICES=[
 {n:"Extension thoracique (rouleau)",grp:"mob",type:"mob",eq:"pdc",desc:"2×10 reps — Haut du dos, posture"},
 {n:"Étirement nuque",grp:"mob",type:"mob",eq:"pdc",desc:"2×30 s/côté — Cervicales, tensions bureau"},
 {n:"Mobilité poignets",grp:"mob",type:"mob",eq:"pdc",desc:"2×30 s — Poignets, avant appuis au sol"},
-{n:"Jefferson curl",grp:"mob",type:"mob",eq:"halteres",desc:"3×8 reps — Mobilité vertébrale, charge légère"}
+{n:"Jefferson curl",grp:"mob",type:"mob",eq:"halteres",desc:"3×8 reps — Mobilité vertébrale, charge légère"},
+{n:"Football",grp:"sport",type:"cardio",met:7.0,eq:"activite",desc:"Match ou entrainement"},
+{n:"Basketball",grp:"sport",type:"cardio",met:6.5,eq:"activite",desc:"Match ou practice"},
+{n:"Tennis",grp:"sport",type:"cardio",met:7.3,eq:"activite",desc:"Simple, en jeu"},
+{n:"Tennis (double)",grp:"sport",type:"cardio",met:5.0,eq:"activite",desc:"Double, moins intense"},
+{n:"Padel",grp:"sport",type:"cardio",met:6.0,eq:"activite",desc:"Partie de padel"},
+{n:"Squash",grp:"sport",type:"cardio",met:12.0,eq:"activite",desc:"Tres intense"},
+{n:"Badminton",grp:"sport",type:"cardio",met:5.5,eq:"activite",desc:"Partie"},
+{n:"Ping-pong",grp:"sport",type:"cardio",met:4.0,eq:"activite",desc:"Tennis de table"},
+{n:"Volleyball",grp:"sport",type:"cardio",met:4.0,eq:"activite",desc:"Match loisir"},
+{n:"Volleyball (plage)",grp:"sport",type:"cardio",met:8.0,eq:"activite",desc:"Beach volley"},
+{n:"Handball",grp:"sport",type:"cardio",met:8.0,eq:"activite",desc:"Match"},
+{n:"Rugby",grp:"sport",type:"cardio",met:8.3,eq:"activite",desc:"Match ou entrainement"},
+{n:"Hockey sur gazon",grp:"sport",type:"cardio",met:7.8,eq:"activite",desc:"Match"},
+{n:"Hockey sur glace",grp:"sport",type:"cardio",met:8.0,eq:"activite",desc:"Match"},
+{n:"Natation (loisir)",grp:"sport",type:"cardio",met:6.0,eq:"activite",desc:"Nage tranquille"},
+{n:"Natation (rapide)",grp:"sport",type:"cardio",met:9.8,eq:"activite",desc:"Crawl soutenu"},
+{n:"Aquagym",grp:"sport",type:"cardio",met:5.3,eq:"activite",desc:"Gym aquatique"},
+{n:"Water-polo",grp:"sport",type:"cardio",met:10.0,eq:"activite",desc:"Match"},
+{n:"Velo (loisir)",grp:"sport",type:"cardio",met:6.0,eq:"activite",desc:"16-19 km/h"},
+{n:"Velo (rapide)",grp:"sport",type:"cardio",met:10.0,eq:"activite",desc:"25-30 km/h"},
+{n:"Velo (VTT)",grp:"sport",type:"cardio",met:8.5,eq:"activite",desc:"Tout-terrain"},
+{n:"Course a pied (footing)",grp:"sport",type:"cardio",met:8.3,eq:"activite",desc:"8-9 km/h"},
+{n:"Course a pied (rapide)",grp:"sport",type:"cardio",met:11.5,eq:"activite",desc:"12-14 km/h"},
+{n:"Trail",grp:"sport",type:"cardio",met:9.0,eq:"activite",desc:"Course nature/denivele"},
+{n:"Marche rapide",grp:"sport",type:"cardio",met:4.3,eq:"activite",desc:"5-6 km/h"},
+{n:"Randonnee",grp:"sport",type:"cardio",met:6.0,eq:"activite",desc:"Marche en nature"},
+{n:"Marche nordique",grp:"sport",type:"cardio",met:6.8,eq:"activite",desc:"Avec batons"},
+{n:"Roller",grp:"sport",type:"cardio",met:7.5,eq:"activite",desc:"Patin en ligne"},
+{n:"Skateboard",grp:"sport",type:"cardio",met:5.0,eq:"activite",desc:"Loisir"},
+{n:"Ski alpin",grp:"sport",type:"cardio",met:6.0,eq:"activite",desc:"Descente"},
+{n:"Ski de fond",grp:"sport",type:"cardio",met:9.0,eq:"activite",desc:"Fond"},
+{n:"Snowboard",grp:"sport",type:"cardio",met:5.3,eq:"activite",desc:"Descente"},
+{n:"Escalade",grp:"sport",type:"cardio",met:8.0,eq:"activite",desc:"Bloc ou voie"},
+{n:"Boxe (sac)",grp:"sport",type:"cardio",met:7.8,eq:"activite",desc:"Frappe sur sac"},
+{n:"Boxe (combat)",grp:"sport",type:"cardio",met:12.0,eq:"activite",desc:"Sparring/combat"},
+{n:"Kickboxing",grp:"sport",type:"cardio",met:10.0,eq:"activite",desc:"Frappe pieds-poings"},
+{n:"Arts martiaux (judo/karate)",grp:"sport",type:"cardio",met:10.3,eq:"activite",desc:"Combat/technique"},
+{n:"MMA",grp:"sport",type:"cardio",met:11.0,eq:"activite",desc:"Combat libre"},
+{n:"Lutte",grp:"sport",type:"cardio",met:6.0,eq:"activite",desc:"Grappling"},
+{n:"Aviron (bateau)",grp:"sport",type:"cardio",met:7.0,eq:"activite",desc:"Rame en riviere"},
+{n:"Kayak",grp:"sport",type:"cardio",met:5.0,eq:"activite",desc:"Pagaie"},
+{n:"Paddle (SUP)",grp:"sport",type:"cardio",met:6.0,eq:"activite",desc:"Stand up paddle"},
+{n:"Surf",grp:"sport",type:"cardio",met:5.0,eq:"activite",desc:"Session"},
+{n:"Voile",grp:"sport",type:"cardio",met:3.3,eq:"activite",desc:"Navigation active"},
+{n:"Equitation",grp:"sport",type:"cardio",met:5.5,eq:"activite",desc:"Trot/galop"},
+{n:"Golf (a pied)",grp:"sport",type:"cardio",met:4.8,eq:"activite",desc:"Parcours avec sac"},
+{n:"Danse",grp:"sport",type:"cardio",met:5.0,eq:"activite",desc:"Danse rythmee"},
+{n:"Danse (intense)",grp:"sport",type:"cardio",met:7.8,eq:"activite",desc:"Zumba/afro"},
+{n:"Zumba",grp:"sport",type:"cardio",met:6.5,eq:"activite",desc:"Fitness danse"},
+{n:"Corde a sauter",grp:"sport",type:"cardio",met:12.0,eq:"activite",desc:"Skipping"},
+{n:"Aerobic",grp:"sport",type:"cardio",met:7.3,eq:"activite",desc:"Cours collectif"},
+{n:"Step",grp:"sport",type:"cardio",met:8.5,eq:"activite",desc:"Step aerobic"},
+{n:"Pilates",grp:"sport",type:"cardio",met:3.0,eq:"activite",desc:"Renforcement doux"},
+{n:"Yoga (dynamique)",grp:"sport",type:"cardio",met:4.0,eq:"activite",desc:"Vinyasa/power"},
+{n:"Escalier (montee)",grp:"sport",type:"cardio",met:8.8,eq:"activite",desc:"Stairmaster/marches"},
+{n:"Patinage",grp:"sport",type:"cardio",met:7.0,eq:"activite",desc:"Glace ou roller"},
+{n:"Frisbee (ultimate)",grp:"sport",type:"cardio",met:8.0,eq:"activite",desc:"Ultimate"},
+{n:"Baseball",grp:"sport",type:"cardio",met:5.0,eq:"activite",desc:"Match"},
+{n:"Cricket",grp:"sport",type:"cardio",met:5.0,eq:"activite",desc:"Match"},
+{n:"Athletisme (sprint)",grp:"sport",type:"cardio",met:10.0,eq:"activite",desc:"Piste, sprints"},
+{n:"Athletisme (saut)",grp:"sport",type:"cardio",met:6.0,eq:"activite",desc:"Sauts"},
+{n:"Triathlon",grp:"sport",type:"cardio",met:10.0,eq:"activite",desc:"Enchainement"},
+{n:"Jardinage actif",grp:"sport",type:"cardio",met:4.0,eq:"activite",desc:"Beche/tonte"},
+{n:"Deménagement/portage",grp:"sport",type:"cardio",met:6.0,eq:"activite",desc:"Port de charges"},
+{n:"Cindy",grp:"wod",type:"wod",met:8.5,eq:"activite",desc:"AMRAP 20 min : 5 tractions, 10 pompes, 15 squats"},
+{n:"Fran",grp:"wod",type:"wod",met:12.0,eq:"activite",desc:"21-15-9 : thrusters + tractions kipping"},
+{n:"Murph",grp:"wod",type:"wod",met:10.0,eq:"activite",desc:"1 mile course, 100 tractions, 200 pompes, 300 squats, 1 mile"},
+{n:"Helen",grp:"wod",type:"wod",met:9.0,eq:"activite",desc:"3 tours : 400 m, 21 kettlebell swings, 12 tractions"},
+{n:"Grace",grp:"wod",type:"wod",met:10.0,eq:"activite",desc:"30 clean & jerk pour le temps"},
+{n:"Isabel",grp:"wod",type:"wod",met:10.0,eq:"activite",desc:"30 arrachés (snatch) pour le temps"},
+{n:"Diane",grp:"wod",type:"wod",met:9.5,eq:"activite",desc:"21-15-9 : deadlift + handstand push-ups"},
+{n:"Angie",grp:"wod",type:"wod",met:9.0,eq:"activite",desc:"100 tractions, 100 pompes, 100 sit-ups, 100 squats"},
+{n:"Barbara",grp:"wod",type:"wod",met:8.5,eq:"activite",desc:"5 tours : 20 tractions, 30 pompes, 40 sit-ups, 50 squats"},
+{n:"Chelsea",grp:"wod",type:"wod",met:8.0,eq:"activite",desc:"EMOM 30 min : 5 tractions, 10 pompes, 15 squats"},
+{n:"Mary",grp:"wod",type:"wod",met:9.0,eq:"activite",desc:"AMRAP 20 : 5 HSPU, 10 pistols, 15 tractions"},
+{n:"Nancy",grp:"wod",type:"wod",met:9.0,eq:"activite",desc:"5 tours : 400 m course, 15 overhead squats"},
+{n:"Annie",grp:"wod",type:"wod",met:8.5,eq:"activite",desc:"50-40-30-20-10 : double-unders + sit-ups"},
+{n:"Karen",grp:"wod",type:"wod",met:9.0,eq:"activite",desc:"150 wall balls pour le temps"},
+{n:"Jackie",grp:"wod",type:"wod",met:9.0,eq:"activite",desc:"1000 m rameur, 50 thrusters, 30 tractions"},
+{n:"Kelly",grp:"wod",type:"wod",met:9.5,eq:"activite",desc:"5 tours : 400 m, 30 box jumps, 30 wall balls"},
+{n:"Filthy Fifty",grp:"wod",type:"wod",met:9.0,eq:"activite",desc:"50 reps de 10 mouvements enchaines"},
+{n:"DT",grp:"wod",type:"wod",met:10.0,eq:"activite",desc:"5 tours : 12 deadlifts, 9 hang cleans, 6 push jerks"},
+{n:"Fight Gone Bad",grp:"wod",type:"wod",met:9.5,eq:"activite",desc:"3 tours : 5 stations 1 min chacune"},
+{n:"Cindy XXX",grp:"wod",type:"wod",met:8.5,eq:"activite",desc:"Variante longue de Cindy"}
 
 ];
 
@@ -2027,7 +2252,7 @@ function bananaTxt(s){
 }
 function jsq(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 var EQ_LABELS={pdc:'Poids du corps',halteres:'Halt\u00e8res',barre:'Barre',poulie:'Poulie',machine:'Machine',kettlebell:'Kettlebell',elastique:'\u00c9lastique',cardio:'Cardio',banc:'Banc',libre:'Libre'};
-var GRP_LABELS={all:'Tous',pec:'Pecto',dos:'Dos',ep:'Epaules',bras:'Bras',jambes:'Jambes',abdos:'Abdos',cardio:'Cardio',mob:'Mobilité'};
+var GRP_LABELS={all:'Tous',pec:'Pecto',dos:'Dos',ep:'Epaules',bras:'Bras',jambes:'Jambes',abdos:'Abdos',cardio:'Cardio',mob:'Mobilité',sport:'Sport',wod:'CrossFit'};
 var GRP_BADGE_STYLE={pec:'background:rgba(167,139,250,.15);color:#C4B5FD',dos:'background:rgba(56,189,248,.14);color:#7DD3FC',ep:'background:rgba(244,114,182,.14);color:#F9A8D4',bras:'background:rgba(250,204,21,.13);color:#FDE68A',jambes:'background:rgba(53,208,143,.14);color:#7FE7BC',abdos:'background:rgba(251,146,60,.14);color:#FDBA74',cardio:'background:rgba(250,204,21,.13);color:#FDE68A',mob:'background:var(--card2);color:var(--text2)'};
 
 // ===================== ONBOARDING =====================
@@ -3338,6 +3563,15 @@ function renderRoutines(){
   }).join('');
 }
 var sdIndex=-1;
+var sdEffort='modere';   // niveau d'effort de la seance en cours de validation
+var EFFORT_OPTS=[['leger','L\u00e9ger'],['modere','Mod\u00e9r\u00e9'],['intense','Intense'],['max','Max']];
+function renderEffortSeg(){
+  var el=document.getElementById('sd-effort'); if(!el) return;
+  el.innerHTML=EFFORT_OPTS.map(function(o){
+    return '<button class="effort-btn'+(o[0]===sdEffort?' on':'')+'" onclick="setSdEffort(\''+o[0]+'\')">'+o[1]+'</button>';
+  }).join('');
+}
+function setSdEffort(e){ sdEffort=e; renderEffortSeg(); sdMajKcal(); }
 function openSeanceDone(i){
   var r=seancesHist[i]; if(!r) return;
   sdIndex=i;
@@ -3353,13 +3587,14 @@ function openSeanceDone(i){
   d.value=estimSeanceMin(exos);
   d.oninput=sdMajKcal;
   sdMajKcal();
+  sdEffort='modere'; renderEffortSeg();
   showModal('modal-seance-done');
 }
 function sdMajKcal(){
   var r=seancesHist[sdIndex]; if(!r) return;
   var min=Math.max(1, parseInt(document.getElementById('sd-duree').value,10)||1);
   var exos=routineExos(r);
-  var k=workoutKcal({duree:min*60, exos:exos.map(function(e){return {nom:e.nom, sets:e.sets};})});
+  var k=workoutKcal({duree:min*60, effort:sdEffort, exos:exos.map(function(e){return {nom:e.nom, sets:e.sets};})});
   var el=document.getElementById('sd-kcal');
   if(el) el.innerHTML='\uD83D\uDD25 <strong style="color:#F5A524;">'+k+' kcal</strong>';
 }
@@ -3374,7 +3609,7 @@ function confirmSeanceDone(){
       return {charge:+s.charge||0, reps:s.reps||'', sec:+s.sec||0, pdc:!!s.pdc, done:true};
     })};
   });
-  var w={nom:r.nom, ts:Date.now(), duree:min*60, series:series, tonnage:seanceTonnage(exos), exos:exosLog};
+  var w={nom:r.nom, ts:Date.now(), duree:min*60, effort:sdEffort, series:series, tonnage:seanceTonnage(exos), exos:exosLog};
   w.kcal=workoutKcal(w);
   workouts.unshift(w);
   if(workouts.length>400) workouts=workouts.slice(0,400);
@@ -3416,7 +3651,13 @@ function fmtMMSS(s){
 // ---------- Depense calorique (methode MET) ----------
 // MET = cout energetique d'une activite. kcal = MET x poids(kg) x duree(h)
 // Valeurs volontairement prudentes : le temps de repos est compris dans la duree.
-var MET_TYPE={muscu:4.5, cardio:8.0, mob:2.3};
+var MET_TYPE={muscu:4.5, cardio:8.0, mob:2.3, sport:7.0, wod:9.0};
+var EFFORT_FACTEUR={leger:0.75, modere:1.0, intense:1.3, max:1.55};
+function exoMET(nom){
+  var e=EXERCICES.find(function(x){return x.n===nom;});
+  if(e && typeof e.met==='number') return e.met;
+  return MET_TYPE[exoType(nom)]||MET_TYPE.muscu;
+}
 
 function workoutKcal(w){
   if(!w) return 0;
@@ -3427,11 +3668,12 @@ function workoutKcal(w){
   var totPoids=0, somme=0;
   (w.exos||[]).forEach(function(e){
     var n=(e.sets||[]).filter(function(s){return s.done;}).length || (e.sets||[]).length || 1;
-    var met=MET_TYPE[exoType(e.nom)]||MET_TYPE.muscu;
+    var met=exoMET(e.nom);
     somme+=met*n; totPoids+=n;
   });
   var met=totPoids?somme/totPoids:MET_TYPE.muscu;
-  return Math.round(met*poids*h);
+  var eff=EFFORT_FACTEUR[w.effort]||1.0;
+  return Math.round(met*eff*poids*h);
 }
 // Depense sport d'une journee donnee (cle AAAA-M-J)
 function sportKcalDay(key){
@@ -3498,7 +3740,13 @@ function fmtMMSS(s){
 // ---------- Depense calorique (methode MET) ----------
 // MET = cout energetique d'une activite. kcal = MET x poids(kg) x duree(h)
 // Valeurs volontairement prudentes : le temps de repos est compris dans la duree.
-var MET_TYPE={muscu:4.5, cardio:8.0, mob:2.3};
+var MET_TYPE={muscu:4.5, cardio:8.0, mob:2.3, sport:7.0, wod:9.0};
+var EFFORT_FACTEUR={leger:0.75, modere:1.0, intense:1.3, max:1.55};
+function exoMET(nom){
+  var e=EXERCICES.find(function(x){return x.n===nom;});
+  if(e && typeof e.met==='number') return e.met;
+  return MET_TYPE[exoType(nom)]||MET_TYPE.muscu;
+}
 
 function workoutKcal(w){
   if(!w) return 0;
@@ -3509,11 +3757,12 @@ function workoutKcal(w){
   var totPoids=0, somme=0;
   (w.exos||[]).forEach(function(e){
     var n=(e.sets||[]).filter(function(s){return s.done;}).length || (e.sets||[]).length || 1;
-    var met=MET_TYPE[exoType(e.nom)]||MET_TYPE.muscu;
+    var met=exoMET(e.nom);
     somme+=met*n; totPoids+=n;
   });
   var met=totPoids?somme/totPoids:MET_TYPE.muscu;
-  return Math.round(met*poids*h);
+  var eff=EFFORT_FACTEUR[w.effort]||1.0;
+  return Math.round(met*eff*poids*h);
 }
 // Depense sport d'une journee donnee (cle AAAA-M-J)
 function sportKcalDay(key){
@@ -3878,9 +4127,52 @@ function renderPicker(){
   }).join('')
   + (list.length>180?'<div style="font-size:11px;color:var(--text3);padding:10px 2px;">Affine ta recherche pour voir les '+(list.length-180)+' autres.</div>':'');
 }
+// ---------- Compositions auto des WOD CrossFit ----------
+// Ajouter un WOD connu deploie automatiquement ses mouvements.
+var WOD_COMPO={
+  'Cindy':[['Tractions','5','pdc'],['Pompes','10','pdc'],['Squats (poids du corps)','15','pdc']],
+  'Fran':[['Thruster','21-15-9','poids'],['Tractions','21-15-9','pdc']],
+  'Murph':[['Course a pied (footing)','1600','min'],['Tractions','100','pdc'],['Pompes','200','pdc'],['Squats (poids du corps)','300','pdc'],['Course a pied (footing)','1600','min']],
+  'Helen':[['Course a pied (footing)','400','min'],['Kettlebell swing','21','poids'],['Tractions','12','pdc']],
+  'Angie':[['Tractions','100','pdc'],['Pompes','100','pdc'],['Crunch','100','pdc'],['Squats (poids du corps)','100','pdc']],
+  'Barbara':[['Tractions','20','pdc'],['Pompes','30','pdc'],['Crunch','40','pdc'],['Squats (poids du corps)','50','pdc']],
+  'Chelsea':[['Tractions','5','pdc'],['Pompes','10','pdc'],['Squats (poids du corps)','15','pdc']],
+  'Grace':[['Epaule-jete (clean & jerk)','30','poids']],
+  'Isabel':[['Arrache (snatch)','30','poids']],
+  'Diane':[['Souleve de terre','21-15-9','poids'],['Pompes','21-15-9','pdc']],
+  'Karen':[['Wall ball','150','poids']],
+  'Nancy':[['Course a pied (footing)','400','min'],['Overhead squat','15','poids']],
+  'Jackie':[['Rameur','1000','min'],['Thruster','50','poids'],['Tractions','30','pdc']],
+  'Annie':[['Corde a sauter','50','sec'],['Crunch','50','pdc']]
+};
+function deployerWOD(nom){
+  var compo=WOD_COMPO[nom]; if(!compo||!editRoutine) return;
+  compo.forEach(function(mv){
+    var exoNom=mv[0], reps=mv[1], mode=mv[2];
+    // Retrouver le vrai nom dans le catalogue (tolerant aux accents)
+    var norm=function(s){return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');};
+    var found=EXERCICES.find(function(e){return norm(e.n)===norm(exoNom);});
+    var vraiNom=found?found.n:exoNom;
+    var sets=[];
+    if(mode==='min'||mode==='sec'){
+      sets.push({charge:0,reps:'',sec:(mode==='min'?Math.round(+reps):+reps)||0,pdc:false});
+    } else {
+      // schema type 21-15-9 : une serie par palier ; sinon une serie
+      var paliers=String(reps).split('-');
+      paliers.forEach(function(r){ sets.push({charge:0,reps:r.trim(),sec:0,pdc:(mode==='pdc')}); });
+    }
+    if(!editRoutine.exos.find(function(e){return e.nom===vraiNom;}))
+      editRoutine.exos.push({nom:vraiNom, repos:reposDefaut(vraiNom), mode:mode, sets:sets});
+  });
+  if(!editRoutine.nom||editRoutine.nom==='Nouvelle s\u00e9ance') editRoutine.nom=nom;
+  renderRoutineEditor(); renderPicker();
+  toast(nom+' d\u00e9ploy\u00e9 \u2705 '+compo.length+' mouvements');
+}
 function pickerAdd(nom){
   if(!editRoutine) return;
   if(editRoutine.exos.find(function(e){return e.nom===nom;})){ toast('Deja dans la seance'); return; }
+  // WOD connu : deployer automatiquement ses mouvements
+  if(WOD_COMPO[nom]){ deployerWOD(nom); return; }
   var last=lastSetsOf(nom);
   var n=last.length?last.length:3;
   var mode=modeDefaut(nom);
