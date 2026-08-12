@@ -3995,14 +3995,14 @@ function renderRoutineEditor(){
       var champs;
       if(enTemps){
         var val = enMin ? (s.sec?Math.round(s.sec/60*10)/10:'') : (s.sec||'');
-        champs='<input class="wset-in wset-wide" type="number" inputmode="decimal" min="0" step="'+(enMin?'0.5':'5')+'" placeholder="'+(enMin?'minutes':'secondes')+'" value="'+val+'" oninput="rSet('+ei+','+si+',\''+(enMin?'min':'sec')+'\',this.value)" />';
+        champs='<input id="set-'+ei+'-'+si+'-sec" class="wset-in wset-wide" type="number" inputmode="decimal" min="0" step="'+(enMin?'0.5':'5')+'" placeholder="'+(enMin?'minutes':'secondes')+'" value="'+val+'" oninput="rSet('+ei+','+si+',\''+(enMin?'min':'sec')+'\',this.value)" />';
       } else if(enPdc){
         champs='<span class="wset-pdc">PDC</span>'
-          +'<input class="wset-in wset-lest" type="number" inputmode="decimal" min="0" placeholder="+kg" value="'+(s.charge?s.charge:'')+'" oninput="rSet('+ei+','+si+',\'charge\',this.value)" />'
-          +'<input class="wset-in" type="text" inputmode="numeric" placeholder="reps" value="'+(s.reps||'')+'" oninput="rSet('+ei+','+si+',\'reps\',this.value)" />';
+          +'<input id="set-'+ei+'-'+si+'-charge" class="wset-in wset-lest" type="number" inputmode="decimal" min="0" placeholder="+kg" value="'+(s.charge?s.charge:'')+'" oninput="rSet('+ei+','+si+',\'charge\',this.value)" />'
+          +'<input class="wset-in" type="text" inputmode="numeric" placeholder="reps" value="'+(s.reps||'')+'" oninput="rSet('+ei+','+si+',\'reps\',this.value)" id="set-'+ei+'-'+si+'-reps" />';
       } else {
-        champs='<input class="wset-in" type="number" inputmode="decimal" min="0" placeholder="kg" value="'+(s.charge?s.charge:'')+'" oninput="rSet('+ei+','+si+',\'charge\',this.value)" />'
-          +'<input class="wset-in" type="text" inputmode="numeric" placeholder="reps" value="'+(s.reps||'')+'" oninput="rSet('+ei+','+si+',\'reps\',this.value)" />';
+        champs='<input id="set-'+ei+'-'+si+'-charge" class="wset-in" type="number" inputmode="decimal" min="0" placeholder="kg" value="'+(s.charge?s.charge:'')+'" oninput="rSet('+ei+','+si+',\'charge\',this.value)" />'
+          +'<input class="wset-in" type="text" inputmode="numeric" placeholder="reps" value="'+(s.reps||'')+'" oninput="rSet('+ei+','+si+',\'reps\',this.value)" id="set-'+ei+'-'+si+'-reps" />';
       }
       return '<div class="wset'+(enTemps?' temps':'')+(enPdc?' pdc':'')+'">'
         +'<span class="wset-n">'+(si+1)+'</span>'
@@ -4028,7 +4028,7 @@ function renderRoutineEditor(){
       +'<button class="mode-btn'+(mode==='temps'?' on':'')+'" onclick="setMode('+ei+',\'temps\')">sec</button>'
       +'<button class="mode-btn'+(mode==='min'  ?' on':'')+'" onclick="setMode('+ei+',\'min\')">min</button>'
       +'</span>'
-      +'<span>Repos</span><input class="wexo-rest" type="number" inputmode="numeric" min="0" value="'+e.repos+'" oninput="rRepos('+ei+',this.value)" /><span>s</span>'
+      +((editRoutine.type==='boucle')?'':('<span>Repos</span><input class="wexo-rest" type="number" inputmode="numeric" min="0" value="'+e.repos+'" oninput="rRepos('+ei+',this.value)" /><span>s</span>'))
       +'</div></div>'
       +'<button class="wexo-del" onclick="rDelExo('+ei+')" aria-label="Retirer">&#10005;</button>'
       +'</div>'
@@ -4142,12 +4142,49 @@ function markDoneToday(){
 
 function rSet(ei,si,field,val){
   if(!editRoutine) return;
-  var s=editRoutine.exos[ei] && editRoutine.exos[ei].sets[si]; if(!s) return;
+  var e=editRoutine.exos[ei]; if(!e) return;
+  var s=e.sets[si]; if(!s) return;
   if(field==='reps') s.reps=val;
   else if(field==='sec') s.sec=Math.max(0, parseInt(val,10)||0);
   else if(field==='min') s.sec=Math.max(0, Math.round((parseFloat(String(val).replace(',','.'))||0)*60));
   else s.charge=Math.max(0, parseFloat(String(val).replace(',','.'))||0);
-  renderRoutineSummary();   // MAJ ciblee : le champ garde le focus
+  // Auto-remplissage : recopier cette valeur sur les series SUIVANTES encore vides
+  // pour ce champ (l'utilisateur peut toujours les modifier ensuite).
+  propagerChamp(e, si, field);
+  majSetsVides(ei);         // met a jour l'affichage des seules series vides remplies
+  renderRoutineSummary();   // MAJ ciblee : le champ actif garde le focus
+}
+// Recopie la valeur du champ de la serie 'si' sur les series suivantes restees vides
+function propagerChamp(e, si, field){
+  var src=e.sets[si]; if(!src) return;
+  var defSec=(typeof secDefaut==='function')?secDefaut(e.nom):0;
+  var estVide=function(s){
+    if(field==='reps') return !s.reps && s.reps!==0 && s.reps!=='0';
+    if(field==='sec'||field==='min') return !s.sec || s.sec===defSec;
+    return !s.charge;   // charge
+  };
+  var valeur=(field==='min')?src.sec:src[field];
+  for(var j=si+1;j<e.sets.length;j++){
+    if(estVide(e.sets[j])){
+      if(field==='min'||field==='sec') e.sets[j].sec=src.sec;
+      else if(field==='reps') e.sets[j].reps=src.reps;
+      else e.sets[j].charge=src.charge;
+    } else break;   // on s'arrete a la premiere serie deja personnalisee
+  }
+}
+// Rafraichit uniquement les <input> des series vides remplies par propagation,
+// sans toucher au champ en cours d'edition (preserve le focus).
+function majSetsVides(ei){
+  var e=editRoutine.exos[ei]; if(!e) return;
+  e.sets.forEach(function(s,si){
+    ['charge','reps','sec'].forEach(function(f){
+      var el=document.getElementById('set-'+ei+'-'+si+'-'+f);
+      if(el && document.activeElement!==el){
+        var v=(f==='sec')?(s.sec||''):(f==='charge'?(s.charge||''):(s.reps||''));
+        el.value=v;
+      }
+    });
+  });
 }
 function setMode(ei,m){
   if(!editRoutine) return;
@@ -4166,7 +4203,13 @@ function rRepos(ei,val){
 function rAddSet(ei){
   if(!editRoutine) return;
   var e=editRoutine.exos[ei]; if(!e) return;
-  var ref=e.sets[e.sets.length-1];
+  // Reference = derniere serie REMPLIE (charge ou reps non vides), sinon la derniere.
+  var ref=null;
+  for(var j=e.sets.length-1;j>=0;j--){
+    var s=e.sets[j];
+    if((s.reps&&s.reps!=='')||s.charge){ ref=s; break; }
+  }
+  if(!ref) ref=e.sets[e.sets.length-1];
   e.sets.push({charge:ref?ref.charge:0, reps:ref?ref.reps:'', sec:ref?ref.sec:secDefaut(e.nom), pdc:(e.mode==='pdc')});
   renderRoutineEditor();
 }
