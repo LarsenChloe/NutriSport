@@ -316,6 +316,13 @@ input#pas-input::placeholder{color:var(--text3);opacity:.4;}
 .pas-kcal-l{font-size:9.5px;font-weight:700;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-top:3px;}
 .pas-sub{font-size:10.5px;color:var(--text3);margin-top:10px;}
 .theme-opt{display:flex;align-items:center;gap:11px;background:var(--card2);border:1.5px solid var(--border);border-radius:13px;padding:10px 13px;margin-bottom:8px;cursor:pointer;transition:border-color .15s,transform .12s;}.theme-opt.on{border-color:var(--y-mid);}.theme-opt:active{transform:scale(.99);}.theme-swatch{width:34px;height:34px;border-radius:9px;border:2px solid;display:flex;align-items:center;justify-content:center;flex-shrink:0;}.theme-swatch span{width:13px;height:13px;border-radius:50%;display:block;}.theme-nom{flex:1;font-size:13px;font-weight:700;color:var(--text);}.theme-check{color:var(--title);font-weight:800;font-size:15px;}
+/* SELECTEUR TYPE D'ENTRAINEMENT */
+.type-seg{display:flex;gap:8px;margin-bottom:12px;}
+.type-btn{flex:1;background:var(--card2);border:1.5px solid var(--border);color:var(--text2);border-radius:12px;height:44px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.type-btn.on{background:var(--y-light);border-color:var(--y-mid);color:var(--title);}
+.type-btn:active{transform:scale(.97);}
+.type-ic{font-size:15px;}
+
 /* SELECTEUR NIVEAU D'EFFORT */
 .effort-seg{display:flex;gap:6px;margin-top:6px;}
 .effort-btn{flex:1;background:var(--card2);border:1.5px solid var(--border);color:var(--text2);border-radius:11px;height:38px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .12s;}
@@ -861,6 +868,15 @@ input#pas-input::placeholder{color:var(--text3);opacity:.4;}
       <button class="btn-save-r" onclick="saveRoutineEditor()">Enregistrer</button>
     </div>
     <input type="text" id="routine-nom" placeholder="Nom de la s&#233;ance (ex&#8239;: Push A)" style="margin-bottom:12px;" oninput="rRename(this.value)" />
+    <div class="type-seg" id="routine-type-seg"></div>
+    <div id="boucle-cible" style="display:none;margin:10px 0 4px;">
+      <div class="done-row" style="margin-top:0;">
+        <span class="done-lbl">Temps imparti</span>
+        <input type="number" id="routine-duree-cible" inputmode="numeric" min="1" max="180" value="20" oninput="rDureeCible(this.value)" />
+        <span class="done-lbl">min</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.35;">En boucle, tu enchaînes le circuit en continu&#8239;; tu compteras tes tours &#224; la fin.</div>
+    </div>
     <div id="routine-edit-list"></div>
     <button class="btn btn-outline" style="margin-top:6px;" onclick="openExoPicker('routine')">+ Ajouter un exercice</button>
     <div id="routine-summary" class="seance-summary" style="margin-top:14px;"></div>
@@ -1025,12 +1041,24 @@ input#pas-input::placeholder{color:var(--text3);opacity:.4;}
   <div class="modal">
     <div class="modal-title" id="sd-title">Seance faite <button class="modal-close" onclick="hideModal('modal-seance-done')">&#10005;</button></div>
     <div id="sd-resume" class="sd-resume"></div>
-    <label>Dur&#233;e de la s&#233;ance</label>
-    <div class="done-row" style="margin-top:0;">
-      <input type="number" id="sd-duree" inputmode="numeric" min="1" max="360" value="45" />
-      <span class="done-lbl">minutes</span>
-      <span style="flex:1;"></span>
-      <span class="done-lbl" id="sd-kcal"></span>
+    <div id="sd-classique-bloc">
+      <label>Dur&#233;e de la s&#233;ance</label>
+      <div class="done-row" style="margin-top:0;">
+        <input type="number" id="sd-duree" inputmode="numeric" min="1" max="360" value="45" />
+        <span class="done-lbl">minutes</span>
+        <span style="flex:1;"></span>
+        <span class="done-lbl" id="sd-kcal"></span>
+      </div>
+    </div>
+    <div id="sd-boucle-bloc" style="display:none;">
+      <label>Nombre de tours r&#233;alis&#233;s</label>
+      <div class="done-row" style="margin-top:0;">
+        <input type="number" id="sd-tours" inputmode="numeric" min="0" max="999" value="10" oninput="sdMajKcal()" />
+        <span class="done-lbl">tours</span>
+        <span style="flex:1;"></span>
+        <span class="done-lbl" id="sd-kcal2"></span>
+      </div>
+      <div id="sd-boucle-info" style="font-size:10.5px;color:var(--text3);margin-top:6px;"></div>
     </div>
     <label style="margin-top:14px;">Niveau d'effort</label>
     <div class="effort-seg" id="sd-effort"></div>
@@ -2162,7 +2190,11 @@ var EXERCICES=[
 {n:"Filthy Fifty",grp:"wod",type:"wod",met:9.0,eq:"activite",desc:"50 reps de 10 mouvements enchaines"},
 {n:"DT",grp:"wod",type:"wod",met:10.0,eq:"activite",desc:"5 tours : 12 deadlifts, 9 hang cleans, 6 push jerks"},
 {n:"Fight Gone Bad",grp:"wod",type:"wod",met:9.5,eq:"activite",desc:"3 tours : 5 stations 1 min chacune"},
-{n:"Cindy XXX",grp:"wod",type:"wod",met:8.5,eq:"activite",desc:"Variante longue de Cindy"}
+{n:"Cindy XXX",grp:"wod",type:"wod",met:8.5,eq:"activite",desc:"Variante longue de Cindy"},
+{n:"Sauna",grp:"sport",type:"cardio",met:1.5,eq:"activite",desc:"S\u00e9ance de sauna (chaleur s\u00e8che)"},
+{n:"Hammam",grp:"sport",type:"cardio",met:1.5,eq:"activite",desc:"Bain de vapeur (chaleur humide)"},
+{n:"Bain froid / cryo",grp:"sport",type:"cardio",met:1.3,eq:"activite",desc:"Immersion eau froide, r\u00e9cup\u00e9ration"},
+{n:"Jacuzzi / spa",grp:"sport",type:"cardio",met:1.5,eq:"activite",desc:"Bain bouillonnant, d\u00e9tente"}
 
 ];
 
@@ -3583,24 +3615,38 @@ function openSeanceDone(i){
   document.getElementById('sd-resume').innerHTML=
     '<div class="sd-stats">'+exos.length+' exercice'+(exos.length>1?'s':'')+' \u00b7 '+series+' s\u00e9ries'+(tonnage?' \u00b7 '+tonnage+' kg':'')+'</div>'
     +'<div class="sd-exos">'+noms.join(' \u00b7 ')+'</div>';
-  var d=document.getElementById('sd-duree');
-  d.value=estimSeanceMin(exos);
-  d.oninput=sdMajKcal;
+  var estBoucle=(r.type==='boucle');
+  document.getElementById('sd-classique-bloc').style.display=estBoucle?'none':'block';
+  document.getElementById('sd-boucle-bloc').style.display=estBoucle?'block':'none';
+  if(estBoucle){
+    var ti=document.getElementById('sd-boucle-info');
+    if(ti) ti.textContent='Temps imparti : '+(r.dureeCible||20)+' min \u00b7 circuit de '+exos.length+' mouvement'+(exos.length>1?'s':'');
+    var tr=document.getElementById('sd-tours'); if(tr) tr.value=tr.value||10;
+  } else {
+    var d=document.getElementById('sd-duree');
+    d.value=estimSeanceMin(exos);
+    d.oninput=sdMajKcal;
+  }
   sdMajKcal();
   sdEffort='modere'; renderEffortSeg();
   showModal('modal-seance-done');
 }
 function sdMajKcal(){
   var r=seancesHist[sdIndex]; if(!r) return;
-  var min=Math.max(1, parseInt(document.getElementById('sd-duree').value,10)||1);
   var exos=routineExos(r);
+  var min;
+  if(r.type==='boucle'){ min=Math.max(1, r.dureeCible||20); }
+  else { min=Math.max(1, parseInt(document.getElementById('sd-duree').value,10)||1); }
   var k=workoutKcal({duree:min*60, effort:sdEffort, exos:exos.map(function(e){return {nom:e.nom, sets:e.sets};})});
-  var el=document.getElementById('sd-kcal');
-  if(el) el.innerHTML='\uD83D\uDD25 <strong style="color:#F5A524;">'+k+' kcal</strong>';
+  var txt='\uD83D\uDD25 <strong style="color:#F5A524;">'+k+' kcal</strong>';
+  var el=document.getElementById('sd-kcal'); if(el) el.innerHTML=txt;
+  var el2=document.getElementById('sd-kcal2'); if(el2) el2.innerHTML=txt;
 }
 function confirmSeanceDone(){
   var r=seancesHist[sdIndex]; if(!r) return;
-  var min=Math.max(1, parseInt(document.getElementById('sd-duree').value,10)||1);
+  var estBoucle=(r.type==='boucle');
+  var tours=estBoucle?Math.max(0,parseInt(document.getElementById('sd-tours').value,10)||0):0;
+  var min=estBoucle?Math.max(1,r.dureeCible||20):Math.max(1, parseInt(document.getElementById('sd-duree').value,10)||1);
   var exos=routineExos(r);
   var series=0;
   var exosLog=exos.map(function(e){
@@ -3610,13 +3656,15 @@ function confirmSeanceDone(){
     })};
   });
   var w={nom:r.nom, ts:Date.now(), duree:min*60, effort:sdEffort, series:series, tonnage:seanceTonnage(exos), exos:exosLog};
+  if(estBoucle){ w.tours=tours; w.type='boucle'; }
   w.kcal=workoutKcal(w);
   workouts.unshift(w);
   if(workouts.length>400) workouts=workouts.slice(0,400);
   localStorage.setItem('ns_workouts', JSON.stringify(workouts));
   hideModal('modal-seance-done');
   renderRoutines(); renderSportHist(); renderJournal(); renderHero();
-  toast('S\u00e9ance enregistr\u00e9e \u2705 '+series+' s\u00e9ries \u00b7 '+w.kcal+' kcal');
+  var msg=estBoucle ? (tours+' tour'+(tours>1?'s':'')+' \u00b7 '+w.kcal+' kcal') : (series+' s\u00e9ries \u00b7 '+w.kcal+' kcal');
+  toast('S\u00e9ance enregistr\u00e9e \u2705 '+msg);
 }
 
 function deleteSeance(i){
@@ -3803,7 +3851,7 @@ function routineExos(r){
 }
 function newRoutine(){
   editRoutineIdx=-1;
-  editRoutine={nom:'', exos:[]};
+  editRoutine={nom:'', exos:[], type:'classique', dureeCible:20};
   openRoutineEditor();
   setTimeout(function(){ openExoPicker('routine'); },140);
 }
@@ -3818,6 +3866,8 @@ function openRoutineEditor(){
   var p=document.getElementById('routine-page');
   p.style.display='block'; p.scrollTop=0;
   document.getElementById('routine-nom').value=editRoutine.nom||'';
+  if(typeof renderRoutineTypeSeg==='function') renderRoutineTypeSeg();
+  renderRoutineTypeSeg();
   renderRoutineEditor();
 }
 function closeRoutineEditor(){
@@ -3960,6 +4010,29 @@ function seanceTonnage(exos){
   });
   return Math.round(t);
 }
+function renderRoutineTypeSeg(){
+  var el=document.getElementById('routine-type-seg'); if(!el||!editRoutine) return;
+  var t=editRoutine.type||'classique';
+  el.innerHTML=
+    '<button class="type-btn'+(t==='classique'?' on':'')+'" onclick="setRoutineType(\'classique\')">'
+      +'<span class="type-ic">\uD83D\uDCCB</span> Classique</button>'
+    +'<button class="type-btn'+(t==='boucle'?' on':'')+'" onclick="setRoutineType(\'boucle\')">'
+      +'<span class="type-ic">\uD83D\uDD01</span> En boucle</button>';
+  var bc=document.getElementById('boucle-cible');
+  if(bc) bc.style.display=(t==='boucle')?'block':'none';
+  var dc=document.getElementById('routine-duree-cible');
+  if(dc) dc.value=editRoutine.dureeCible||20;
+  // Le champ "duree de la seance" du bas n'a pas de sens en boucle : on le masque
+  var dr=document.getElementById('routine-duree');
+  if(dr){ var row=dr.closest?dr.closest('.done-row'):null; if(row) row.style.display=(t==='boucle')?'none':'flex'; }
+}
+function setRoutineType(t){
+  if(!editRoutine) return;
+  editRoutine.type=t;
+  renderRoutineTypeSeg(); renderRoutineEditor();
+}
+function rDureeCible(v){ if(editRoutine) editRoutine.dureeCible=Math.max(1,parseInt(v,10)||20); }
+
 function renderRoutineSummary(){
   if(!editRoutine) return;
   var el=document.getElementById('routine-summary');
@@ -3967,7 +4040,9 @@ function renderRoutineSummary(){
   var series=0; exos.forEach(function(e){ series+=(e.sets||[]).length; });
   if(el){
     if(!exos.length){ el.textContent=''; }
-    else {
+    else if((editRoutine.type||'classique')==='boucle'){
+      el.textContent='Circuit de '+exos.length+' mouvement'+(exos.length>1?'s':'')+'  \u00b7  '+(editRoutine.dureeCible||20)+' min';
+    } else {
       var bits=[exos.length+' exercice'+(exos.length>1?'s':''), series+' s\u00e9rie'+(series>1?'s':'')];
       var tn=seanceTonnage(exos); if(tn>0) bits.push(tn+' kg');
       el.textContent=bits.join('  \u00b7  ');
@@ -4069,13 +4144,17 @@ function saveRoutineEditor(silencieux){
             sets:e.sets.map(function(s){return {charge:+s.charge||0, reps:s.reps||'', sec:+s.sec||0, pdc:!!s.pdc};}),
             duree:0, type:'single'};
   });
+  var typeR=editRoutine.type||'classique';
+  var dureeC=editRoutine.dureeCible||20;
   if(editRoutineIdx>=0 && seancesHist[editRoutineIdx]){
     seancesHist[editRoutineIdx].nom=nom;
     seancesHist[editRoutineIdx].exercices=exos;
+    seancesHist[editRoutineIdx].type=typeR;
+    seancesHist[editRoutineIdx].dureeCible=dureeC;
   } else {
     var base=nom, k=2;
     while(seancesHist.find(function(r){return r.nom===nom;})){ nom=base+' ('+k+')'; k++; }
-    seancesHist.unshift({nom:nom, date:new Date().toLocaleDateString('fr-FR'), timestamp:Date.now(), exercices:exos});
+    seancesHist.unshift({nom:nom, date:new Date().toLocaleDateString('fr-FR'), timestamp:Date.now(), exercices:exos, type:typeR, dureeCible:dureeC});
   }
   localStorage.setItem('ns_seances',JSON.stringify(seancesHist));
   renderRoutines();
@@ -4145,8 +4224,14 @@ var WOD_COMPO={
   'Jackie':[['Rameur','1000','min'],['Thruster','50','poids'],['Tractions','30','pdc']],
   'Annie':[['Corde a sauter','50','sec'],['Crunch','50','pdc']]
 };
+// WOD a compter en tours (AMRAP/EMOM) : passent en mode boucle avec leur duree
+var WOD_BOUCLE={'Cindy':20,'Chelsea':30,'Mary':20,'Barbara':0,'Cindy XXX':20};
 function deployerWOD(nom){
   var compo=WOD_COMPO[nom]; if(!compo||!editRoutine) return;
+  if(WOD_BOUCLE[nom]!==undefined){
+    editRoutine.type='boucle';
+    if(WOD_BOUCLE[nom]>0) editRoutine.dureeCible=WOD_BOUCLE[nom];
+  }
   compo.forEach(function(mv){
     var exoNom=mv[0], reps=mv[1], mode=mv[2];
     // Retrouver le vrai nom dans le catalogue (tolerant aux accents)
@@ -4165,7 +4250,7 @@ function deployerWOD(nom){
       editRoutine.exos.push({nom:vraiNom, repos:reposDefaut(vraiNom), mode:mode, sets:sets});
   });
   if(!editRoutine.nom||editRoutine.nom==='Nouvelle s\u00e9ance') editRoutine.nom=nom;
-  renderRoutineEditor(); renderPicker();
+  renderRoutineTypeSeg(); renderRoutineEditor(); renderPicker();
   toast(nom+' d\u00e9ploy\u00e9 \u2705 '+compo.length+' mouvements');
 }
 function pickerAdd(nom){
