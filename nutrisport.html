@@ -3634,10 +3634,17 @@ function openSeanceDone(i){
 function sdMajKcal(){
   var r=seancesHist[sdIndex]; if(!r) return;
   var exos=routineExos(r);
-  var min;
-  if(r.type==='boucle'){ min=Math.max(1, r.dureeCible||20); }
-  else { min=Math.max(1, parseInt(document.getElementById('sd-duree').value,10)||1); }
-  var k=workoutKcal({duree:min*60, effort:sdEffort, exos:exos.map(function(e){return {nom:e.nom, sets:e.sets};})});
+  var min, wcalc;
+  if(r.type==='boucle'){
+    min=Math.max(1, r.dureeCible||20);
+    var toursEl=document.getElementById('sd-tours');
+    var tours=toursEl?Math.max(0,parseInt(toursEl.value,10)||0):0;
+    wcalc={duree:min*60, effort:sdEffort, type:'boucle', tours:tours, exos:exos.map(function(e){return {nom:e.nom, sets:e.sets};})};
+  } else {
+    min=Math.max(1, parseInt(document.getElementById('sd-duree').value,10)||1);
+    wcalc={duree:min*60, effort:sdEffort, exos:exos.map(function(e){return {nom:e.nom, sets:e.sets};})};
+  }
+  var k=workoutKcal(wcalc);
   var txt='\uD83D\uDD25 <strong style="color:#F5A524;">'+k+' kcal</strong>';
   var el=document.getElementById('sd-kcal'); if(el) el.innerHTML=txt;
   var el2=document.getElementById('sd-kcal2'); if(el2) el2.innerHTML=txt;
@@ -3701,10 +3708,23 @@ function fmtMMSS(s){
 // Valeurs volontairement prudentes : le temps de repos est compris dans la duree.
 var MET_TYPE={muscu:4.5, cardio:8.0, mob:2.3, sport:7.0, wod:9.0};
 var EFFORT_FACTEUR={leger:0.75, modere:1.0, intense:1.3, max:1.55};
+// MET differencie pour la musculation selon l'intensite reelle du mouvement.
+function metMuscu(nom){
+  var n=String(nom||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  if(/pliometr|claquee|jump|box jump|sled|traineau|sprint|clean|snatch|arrache|epaule-jete|jerk|thruster|devil press|turkish|get-up|kettlebell swing|farmer|suitcase|wall ball/.test(n)) return 6.5;
+  // goblet (charge legere) et sissy (isolation quadri) exclus du tier lourd
+  if(/goblet|sissy/.test(n)) return 5.0;
+  if(/squat|souleve de terre|deadlift|rack pull|hip thrust|presse a jambes|presse a cuisses|hack squat|leg press|front squat|belt squat|good morning|clean and press|rowing pendlay|rowing barre|rowing t-bar|rowing yates|developpe militaire|developpe couche \(barre\)|developpe incline \(barre\)|developpe decline \(barre\)|developpe nuque|bulgarian|nordic|dragon flag/.test(n)) return 6.0;
+  if(/traction|chin-up|pull-up|dips|rowing|tirage|developpe|press\b|fentes|lunge|step-up|pull-over|pullover|hyperextension|reverse hyper|superman|muscle|pike push|handstand|l-sit|toes to bar|releve de jambe|hollow|ab wheel|rouleau|cossack|essuie-glace|woodchopper/.test(n)) return 5.0;
+  if(/curl|extension|elevation|oiseau|face pull|kick-back|kickback|skull|barre au front|shrugs|mollets|calf|leg extension|leg curl|abduction|adduction|pec deck|ecarte|butterfly|cable croise|svend|floor press|z-press|cuban|bradford|rotation|poignet|grip|avant-bras|crunch|russian twist|planche|gainage|dead bug|bird dog|pallof|side bend|flutter|sit-up|v-up|wall sit|chaise|glute kickback|pont fessier|glute bridge|sissy|copenhagen|hollow body/.test(n)) return 3.5;
+  return 5.0;
+}
 function exoMET(nom){
   var e=EXERCICES.find(function(x){return x.n===nom;});
   if(e && typeof e.met==='number') return e.met;
-  return MET_TYPE[exoType(nom)]||MET_TYPE.muscu;
+  var t=exoType(nom);
+  if(t==='muscu') return metMuscu(nom);
+  return MET_TYPE[t]||MET_TYPE.muscu;
 }
 
 // Depense d'une seance = MET representatif x facteur d'effort x poids x duree(h).
@@ -3723,11 +3743,33 @@ function workoutKcal(w){
   var met;
 
   if(w.type==='boucle'){
-    // Circuit enchaine sans repos : metcon. On prend le plus haut MET du circuit
-    // (le mouvement le plus couteux donne le ton), plancher a 8 (circuit training).
-    var maxMet=0;
-    exos.forEach(function(e){ var m=exoMET(e.nom); if(m>maxMet) maxMet=m; });
-    met=Math.max(8, maxMet);
+    // Circuit enchaine sans repos (metcon). MET de base = plus haut MET du circuit,
+    // plancher a 8 (circuit training). L'INTENSITE REELLE vient du nombre de tours :
+    // plus on boucle de tours dans le temps imparti, plus la cadence (reps/min) est
+    // elevee, plus la depense monte. C'est la vraie mesure de l'effort en AMRAP.
+    var maxMet=0, repsTour=0;
+    exos.forEach(function(e){
+      var m=exoMET(e.nom); if(m>maxMet) maxMet=m;
+      (e.sets||[]).forEach(function(s){ repsTour+=repsMoy(s.reps); });   // reps d'un tour
+    });
+    var metBase=Math.max(8, maxMet);
+    // Facteur d'intensite base sur le nombre de tours, NORMALISE par la taille du
+    // circuit (un circuit court permet plus de tours, un long moins). On estime les
+    // tours "attendus" a cadence soutenue (~2.5 s par repetition) dans le temps
+    // imparti, et on compare aux tours reellement realises.
+    var tours=+w.tours||0, sec=(+w.duree||0);
+    if(tours>0 && repsTour>0 && sec>0){
+      var secParTour=repsTour*2.5;                 // duree d'un tour a cadence normale
+      var toursAttendus=sec/secParTour;            // tours "normaux" dans le temps imparti
+      var facInt=tours/toursAttendus;              // 1.0 = cadence normale
+      facInt=Math.max(0.55, Math.min(2.0, facInt)); // borne : tres lent a tres rapide
+      met=metBase*facInt;
+    } else {
+      met=metBase;                                 // pas encore de tours saisis : base
+    }
+    // En boucle, le nombre de tours capte deja le rythme : on COMPRESSE l'amplitude
+    // du niveau d'effort (il ne module plus que la charge/difficulte, pas la cadence).
+    eff=1+(eff-1)*0.5;
   } else if(exos.length===1 && isActivite(exos[0].nom)){
     // Une seule activite (sport de type tennis, course, natation...) : son MET propre.
     met=exoMET(exos[0].nom);
@@ -3822,7 +3864,9 @@ var EFFORT_FACTEUR={leger:0.75, modere:1.0, intense:1.3, max:1.55};
 function exoMET(nom){
   var e=EXERCICES.find(function(x){return x.n===nom;});
   if(e && typeof e.met==='number') return e.met;
-  return MET_TYPE[exoType(nom)]||MET_TYPE.muscu;
+  var t=exoType(nom);
+  if(t==='muscu') return metMuscu(nom);
+  return MET_TYPE[t]||MET_TYPE.muscu;
 }
 
 // Depense d'une seance = MET representatif x facteur d'effort x poids x duree(h).
@@ -3841,11 +3885,33 @@ function workoutKcal(w){
   var met;
 
   if(w.type==='boucle'){
-    // Circuit enchaine sans repos : metcon. On prend le plus haut MET du circuit
-    // (le mouvement le plus couteux donne le ton), plancher a 8 (circuit training).
-    var maxMet=0;
-    exos.forEach(function(e){ var m=exoMET(e.nom); if(m>maxMet) maxMet=m; });
-    met=Math.max(8, maxMet);
+    // Circuit enchaine sans repos (metcon). MET de base = plus haut MET du circuit,
+    // plancher a 8 (circuit training). L'INTENSITE REELLE vient du nombre de tours :
+    // plus on boucle de tours dans le temps imparti, plus la cadence (reps/min) est
+    // elevee, plus la depense monte. C'est la vraie mesure de l'effort en AMRAP.
+    var maxMet=0, repsTour=0;
+    exos.forEach(function(e){
+      var m=exoMET(e.nom); if(m>maxMet) maxMet=m;
+      (e.sets||[]).forEach(function(s){ repsTour+=repsMoy(s.reps); });   // reps d'un tour
+    });
+    var metBase=Math.max(8, maxMet);
+    // Facteur d'intensite base sur le nombre de tours, NORMALISE par la taille du
+    // circuit (un circuit court permet plus de tours, un long moins). On estime les
+    // tours "attendus" a cadence soutenue (~2.5 s par repetition) dans le temps
+    // imparti, et on compare aux tours reellement realises.
+    var tours=+w.tours||0, sec=(+w.duree||0);
+    if(tours>0 && repsTour>0 && sec>0){
+      var secParTour=repsTour*2.5;                 // duree d'un tour a cadence normale
+      var toursAttendus=sec/secParTour;            // tours "normaux" dans le temps imparti
+      var facInt=tours/toursAttendus;              // 1.0 = cadence normale
+      facInt=Math.max(0.55, Math.min(2.0, facInt)); // borne : tres lent a tres rapide
+      met=metBase*facInt;
+    } else {
+      met=metBase;                                 // pas encore de tours saisis : base
+    }
+    // En boucle, le nombre de tours capte deja le rythme : on COMPRESSE l'amplitude
+    // du niveau d'effort (il ne module plus que la charge/difficulte, pas la cadence).
+    eff=1+(eff-1)*0.5;
   } else if(exos.length===1 && isActivite(exos[0].nom)){
     // Une seule activite (sport de type tennis, course, natation...) : son MET propre.
     met=exoMET(exos[0].nom);
